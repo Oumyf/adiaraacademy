@@ -1,0 +1,22 @@
+:root {
+  --foret: #1A4A2E; --foret-clair: #2D6B44; --foret-pale: #EAF2EC;
+  --or: #C8912A; --or-pale: #FEF6E4;
+  --sable: #F7F4EE; --blanc: #FFFFFF;
+  --texte: #1A1A1A; --texte-2: #4A5568; --texte-3: #8B96A3;
+  --bord: #E2E8E4; --bord-2: #C8D5CC;
+  --erreur: #C53030; --succes: #276749;
+  --serif: "Instrument Serif", Georgia, serif;
+  --sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --r-sm: 6px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px;
+  --ombre-sm: 0 1px 3px rgba(26,74,46,.08);
+  --ombre-md: 0 4px 12px rgba(26,74,46,.10);
+  --transition: 200ms cubic-bezier(.4,0,.2,1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); font-size: 16px; line-height: 1.6; color: var(--texte); background: var(--sable); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.2; }
+a { color: var(--foret); text-decoration: none; }
+button { cursor: pointer; font-family: var(--sans); }
+:focus-visible { outline: 2px solid var(--foret); outline-offset: 2px; }
+.katex { font-size: 1.05em; }
+.katex-display { margin: 1.5rem 0; overflow-x: auto; }
