@@ -72,7 +72,7 @@ export default function QuizPage() {
       : reponses
     try {
       const r = await api.post(`/quiz/${id}/soumettre`, { reponses: toutesReponses, dureeSec })
-      mettreAJourUtilisateur({ xpTotal: (utilisateur?.xpTotal || 0) + r.data.xpGagne })
+      mettreAJourUtilisateur({ xpTotal: r.data.xpTotal, streak: r.data.streak })
       setResultat(r.data)
       setEtape('resultat')
     } catch {
@@ -92,7 +92,7 @@ export default function QuizPage() {
       const dureeSec = Math.round((Date.now() - debut) / 1000)
       api.post(`/quiz/${id}/soumettre`, { reponses: toutesReponses, dureeSec })
         .then(r => {
-          mettreAJourUtilisateur({ xpTotal: (utilisateur?.xpTotal || 0) + r.data.xpGagne })
+          mettreAJourUtilisateur({ xpTotal: r.data.xpTotal, streak: r.data.streak })
           setResultat(r.data)
           setEtape('resultat')
         })

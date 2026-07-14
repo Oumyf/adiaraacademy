@@ -38,7 +38,7 @@ function DashboardProf({ profil, mesCours, profilProf }) {
   const nbPublies   = mesCours?.filter(c => c.publie).length ?? 0
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+    <div className="page-container" style={{ maxWidth: '960px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '2rem' }}>
         <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'var(--foret)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--serif)', fontSize: '20px' }}>
@@ -58,7 +58,7 @@ function DashboardProf({ profil, mesCours, profilProf }) {
       </div>
 
       {/* Stats prof */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '2rem' }}>
+      <div className="stats-grille" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '2rem' }}>
         <StatCard valeur={nbCours}     unite=""   label="Cours créés" />
         <StatCard valeur={nbChapitres} unite=""   label="Chapitres publiés" />
         <StatCard valeur={nbPublies}   unite=""   label="Cours publiés" />
@@ -186,7 +186,7 @@ export default function Dashboard() {
 
   // ── Vue élève ──────────────────────────────────────
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+    <div className="page-container" style={{ maxWidth: '960px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '2.5rem' }}>
         <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'var(--foret)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--serif)', fontSize: '20px' }}>
           {profil.prenom?.[0]}{profil.nom?.[0]}

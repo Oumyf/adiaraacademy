@@ -95,9 +95,26 @@ router.post('/:id/soumettre', authentifier, async (req, res) => {
     const tentative = await prisma.tentative.create({
       data: { utilisateurId, quizId, reponses, score, xpGagne, dureeSec, termineLeAt: new Date() }
     })
-    await prisma.utilisateur.update({
+
+    // Calcul du streak
+    const userActuel = await prisma.utilisateur.findUnique({
       where: { id: utilisateurId },
-      data: { xpTotal: { increment: xpGagne }, derniereActivite: new Date() }
+      select: { derniereActivite: true, streak: true }
+    })
+    const maintenant = new Date()
+    const aujourd_hui = new Date(maintenant); aujourd_hui.setHours(0, 0, 0, 0)
+    const hier = new Date(aujourd_hui); hier.setDate(hier.getDate() - 1)
+    let nouveauStreak = 1
+    if (userActuel.derniereActivite) {
+      const derniere = new Date(userActuel.derniereActivite); derniere.setHours(0, 0, 0, 0)
+      if (derniere.getTime() === aujourd_hui.getTime()) nouveauStreak = userActuel.streak
+      else if (derniere.getTime() === hier.getTime())   nouveauStreak = userActuel.streak + 1
+    }
+
+    const userMisAJour = await prisma.utilisateur.update({
+      where: { id: utilisateurId },
+      data: { xpTotal: { increment: xpGagne }, derniereActivite: maintenant, streak: nouveauStreak },
+      select: { xpTotal: true, streak: true }
     })
     await prisma.progression.upsert({
       where: { utilisateurId_chapitreId: { utilisateurId, chapitreId: quiz.chapitreId } },
@@ -107,7 +124,7 @@ router.post('/:id/soumettre', authentifier, async (req, res) => {
 
     const nouveauxBadges = await verifierEtAttribuerBadges(utilisateurId)
 
-    res.json({ tentativeId: tentative.id, score, xpGagne, bonnesReponses, totalQuestions: quiz.questions.length, corrections, nouveauxBadges })
+    res.json({ tentativeId: tentative.id, score, xpGagne, xpTotal: userMisAJour.xpTotal, streak: userMisAJour.streak, bonnesReponses, totalQuestions: quiz.questions.length, corrections, nouveauxBadges })
   } catch (err) { res.status(500).json({ message: 'Erreur', detail: err.message }) }
 })
 

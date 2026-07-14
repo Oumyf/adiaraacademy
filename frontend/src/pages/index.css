@@ -18,6 +18,7 @@
   --texte-3:     #8B96A3;
   --bord:        #E2E8E4;
   --bord-2:      #C8D5CC;
+  --terre:       #A8533A;   /* accent profs particuliers */
   --erreur:      #C53030;
   --succes:      #276749;
 
@@ -148,4 +149,27 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 480px) {
   body { font-size: 15px; }
+
+  /* Dashboard — réduit le padding sur petits écrans */
+  .dashboard-grille {
+    gap: 16px;
+  }
+
+  /* Stat cards — 2 colonnes sur mobile, 1 si trop petit */
+  .stats-grille {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ─── Responsive — pages génériques ──────── */
+@media (max-width: 640px) {
+  /* Bannieres flex → colonne sur mobile */
+  .banniere-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  /* Réduction de l'espace intérieur des pages */
+  .page-container {
+    padding: 1.5rem 1rem !important;
+  }
 }
