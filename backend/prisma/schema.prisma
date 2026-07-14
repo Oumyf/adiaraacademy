@@ -46,6 +46,18 @@ enum Difficulte {
   DIFFICILE
 }
 
+enum StatutAbonnement {
+  EN_ATTENTE
+  ACTIF
+  EXPIRE
+  ANNULE
+}
+
+enum MethodePaiement {
+  ORANGE_MONEY
+  WAVE
+}
+
 model Utilisateur {
   id               String             @id @default(uuid())
   nom              String
@@ -69,6 +81,7 @@ model Utilisateur {
   enfants          LienParentEnfant[] @relation("ParentLinks")
   parents          LienParentEnfant[] @relation("EnfantLinks")
   profilProf       ProfilProfesseur?
+  abonnements      Abonnement[]
 
   @@map("utilisateurs")
 }
@@ -99,6 +112,22 @@ model ProfilProfesseur {
   misAJourLe  DateTime    @updatedAt
 
   @@map("profils_professeurs")
+}
+
+model Abonnement {
+  id                   String           @id @default(uuid())
+  utilisateurId        String
+  utilisateur          Utilisateur      @relation(fields: [utilisateurId], references: [id])
+  statut               StatutAbonnement @default(EN_ATTENTE)
+  montant              Int              @default(2900)
+  dateDebut            DateTime?
+  dateFin              DateTime?
+  methodePaiement      MethodePaiement
+  referenceTransaction String?          @unique
+  creeLe               DateTime         @default(now())
+  misAJourLe           DateTime         @updatedAt
+
+  @@map("abonnements")
 }
 
 model Cours {
