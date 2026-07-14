@@ -62,6 +62,26 @@ const PLANS = [
 
 const ETAPES = { CHOIX: 'choix', METHODE: 'methode', INSTRUCTIONS: 'instructions', SUCCES: 'succes' }
 
+const LogoOrangeMoney = () => (
+  <svg width="48" height="48" viewBox="0 0 48 48" aria-label="Orange Money">
+    <rect width="48" height="48" rx="12" fill="#FF6600"/>
+    <rect x="8" y="8" width="32" height="32" rx="7" fill="white" opacity="0.12"/>
+    {/* Cercle Orange */}
+    <circle cx="24" cy="18" r="7" fill="white" opacity="0.9"/>
+    <circle cx="24" cy="18" r="4.5" fill="#FF6600"/>
+    <text x="24" y="34" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="8" letterSpacing="0.5">MONEY</text>
+  </svg>
+)
+
+const LogoWave = () => (
+  <svg width="48" height="48" viewBox="0 0 48 48" aria-label="Wave">
+    <rect width="48" height="48" rx="12" fill="#1D62ED"/>
+    {/* W stylisé en vague */}
+    <path d="M9 26 C13 18 17 34 21 24 C25 14 29 30 33 22 L36 16" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    <text x="24" y="41" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="8" letterSpacing="1">WAVE</text>
+  </svg>
+)
+
 function Modal({ onFermer, children }) {
   return (
     <div onClick={onFermer} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -252,19 +272,25 @@ export default function Tarifs() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <button onClick={() => initierPaiement('ORANGE_MONEY')} disabled={chargement}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px', border: '2px solid #FF6600', borderRadius: 'var(--r-lg)', background: chargement ? 'var(--sable)' : '#FFF5EE', cursor: 'pointer', textAlign: 'left' }}>
-                  <span style={{ fontSize: '1.5rem' }}>🟠</span>
+                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', border: '2px solid #FF6600', borderRadius: 'var(--r-lg)', background: chargement ? 'var(--sable)' : '#FFF5EE', cursor: chargement ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'all .15s ease' }}
+                  onMouseEnter={e => { if (!chargement) e.currentTarget.style.background = '#FFE8D6' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = chargement ? 'var(--sable)' : '#FFF5EE' }}
+                >
+                  <LogoOrangeMoney />
                   <div>
-                    <div style={{ fontWeight: '700', fontSize: '14px', color: '#CC4400' }}>Orange Money</div>
-                    <div style={{ fontSize: '12px', color: 'var(--texte-3)' }}>Paiement par virement OM</div>
+                    <div style={{ fontWeight: '800', fontSize: '15px', color: '#CC4400' }}>Orange Money</div>
+                    <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>Paiement mobile · *144#</div>
                   </div>
                 </button>
                 <button onClick={() => initierPaiement('WAVE')} disabled={chargement}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px', border: '2px solid #1E90FF', borderRadius: 'var(--r-lg)', background: chargement ? 'var(--sable)' : '#EEF5FF', cursor: 'pointer', textAlign: 'left' }}>
-                  <span style={{ fontSize: '1.5rem' }}>🔵</span>
+                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', border: '2px solid #1D62ED', borderRadius: 'var(--r-lg)', background: chargement ? 'var(--sable)' : '#EEF5FF', cursor: chargement ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'all .15s ease' }}
+                  onMouseEnter={e => { if (!chargement) e.currentTarget.style.background = '#D6E4FF' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = chargement ? 'var(--sable)' : '#EEF5FF' }}
+                >
+                  <LogoWave />
                   <div>
-                    <div style={{ fontWeight: '700', fontSize: '14px', color: '#1560BD' }}>Wave</div>
-                    <div style={{ fontSize: '12px', color: 'var(--texte-3)' }}>Paiement par virement Wave</div>
+                    <div style={{ fontWeight: '800', fontSize: '15px', color: '#1445B0' }}>Wave</div>
+                    <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>Paiement mobile · App Wave</div>
                   </div>
                 </button>
               </div>
@@ -275,9 +301,15 @@ export default function Tarifs() {
           {/* Étape 2 — Instructions de paiement */}
           {etape === ETAPES.INSTRUCTIONS && instructions && (
             <>
-              <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', marginBottom: '1rem' }}>
-                {methode === 'ORANGE_MONEY' ? '🟠 Orange Money' : '🔵 Wave'}
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.25rem' }}>
+                {methode === 'ORANGE_MONEY' ? <LogoOrangeMoney /> : <LogoWave />}
+                <div>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', margin: 0 }}>
+                    {methode === 'ORANGE_MONEY' ? 'Orange Money' : 'Wave'}
+                  </h2>
+                  <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>2 900 FCFA · 30 jours</div>
+                </div>
+              </div>
 
               <div style={{ background: 'var(--sable)', borderRadius: 'var(--r-lg)', padding: '1.25rem', marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--texte-3)', letterSpacing: '.5px', marginBottom: '8px' }}>INSTRUCTIONS</div>
