@@ -7,33 +7,98 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role { ELEVE PROFESSEUR ADMIN }
-enum NiveauScolaire { COLLEGE LYCEE UNIVERSITE }
-enum Matiere { MATHEMATIQUES PHYSIQUE CHIMIE SCIENCES_VIE_TERRE INFORMATIQUE }
-enum StatutProgression { NON_COMMENCE EN_COURS TERMINE }
-enum TypeQuiz { QCM REPONSE_LIBRE VRAI_FAUX }
-enum Difficulte { FACILE MOYEN DIFFICILE }
+enum Role {
+  ELEVE
+  PROFESSEUR
+  ADMIN
+  PARENT
+}
+
+enum NiveauScolaire {
+  COLLEGE
+  LYCEE
+  UNIVERSITE
+}
+
+enum Matiere {
+  MATHEMATIQUES
+  PHYSIQUE
+  CHIMIE
+  SCIENCES_VIE_TERRE
+  INFORMATIQUE
+}
+
+enum StatutProgression {
+  NON_COMMENCE
+  EN_COURS
+  TERMINE
+}
+
+enum TypeQuiz {
+  QCM
+  REPONSE_LIBRE
+  VRAI_FAUX
+}
+
+enum Difficulte {
+  FACILE
+  MOYEN
+  DIFFICILE
+}
 
 model Utilisateur {
-  id               String    @id @default(uuid())
+  id               String             @id @default(uuid())
   nom              String
   prenom           String
-  email            String    @unique
+  email            String             @unique
   motDePasse       String
-  role             Role      @default(ELEVE)
+  role             Role               @default(ELEVE)
   niveau           NiveauScolaire
   classe           String?
   ecole            String?
-  xpTotal          Int       @default(0)
-  streak           Int       @default(0)
+  xpTotal          Int                @default(0)
+  streak           Int                @default(0)
+  estPremium       Boolean            @default(false)
   derniereActivite DateTime?
-  creeLe           DateTime  @default(now())
-  misAJourLe       DateTime  @updatedAt
+  creeLe           DateTime           @default(now())
+  misAJourLe       DateTime           @updatedAt
   coursCreees      Cours[]
   progressions     Progression[]
   tentatives       Tentative[]
   badges           BadgeUtilisateur[]
+  enfants          LienParentEnfant[] @relation("ParentLinks")
+  parents          LienParentEnfant[] @relation("EnfantLinks")
+  profilProf       ProfilProfesseur?
+
   @@map("utilisateurs")
+}
+
+model LienParentEnfant {
+  id       String      @id @default(uuid())
+  parentId String
+  parent   Utilisateur @relation("ParentLinks", fields: [parentId], references: [id])
+  enfantId String
+  enfant   Utilisateur @relation("EnfantLinks", fields: [enfantId], references: [id])
+  creeLe   DateTime    @default(now())
+
+  @@unique([parentId, enfantId])
+  @@map("liens_parent_enfant")
+}
+
+model ProfilProfesseur {
+  id          String      @id @default(uuid())
+  userId      String      @unique
+  utilisateur Utilisateur @relation(fields: [userId], references: [id])
+  bio         String?     @db.Text
+  matieres    Matiere[]
+  tarifHeure  Int?
+  ville       String?
+  disponible  Boolean     @default(true)
+  verifie     Boolean     @default(false)
+  creeLe      DateTime    @default(now())
+  misAJourLe  DateTime    @updatedAt
+
+  @@map("profils_professeurs")
 }
 
 model Cours {
@@ -45,42 +110,46 @@ model Cours {
   classe      String?
   imageUrl    String?
   publie      Boolean        @default(false)
+  premium     Boolean        @default(false)
   creeLe      DateTime       @default(now())
   misAJourLe  DateTime       @updatedAt
   auteurId    String
   auteur      Utilisateur    @relation(fields: [auteurId], references: [id])
   chapitres   Chapitre[]
+
   @@map("cours")
 }
 
 model Chapitre {
-  id           String    @id @default(uuid())
+  id           String        @id @default(uuid())
   titre        String
-  contenu      String    @db.Text
+  contenu      String        @db.Text
   ordre        Int
-  xpObtenu     Int       @default(10)
-  creeLe       DateTime  @default(now())
-  misAJourLe   DateTime  @updatedAt
+  xpObtenu     Int           @default(10)
+  creeLe       DateTime      @default(now())
+  misAJourLe   DateTime      @updatedAt
   coursId      String
-  cours        Cours     @relation(fields: [coursId], references: [id], onDelete: Cascade)
+  cours        Cours         @relation(fields: [coursId], references: [id], onDelete: Cascade)
   quiz         Quiz[]
   progressions Progression[]
+
   @@unique([coursId, ordre])
   @@map("chapitres")
 }
 
 model Quiz {
-  id         String    @id @default(uuid())
+  id         String      @id @default(uuid())
   titre      String
-  type       TypeQuiz  @default(QCM)
+  type       TypeQuiz    @default(QCM)
   dureMin    Int?
-  xpMax      Int       @default(50)
-  creeLe     DateTime  @default(now())
-  misAJourLe DateTime  @updatedAt
+  xpMax      Int         @default(50)
+  creeLe     DateTime    @default(now())
+  misAJourLe DateTime    @updatedAt
   chapitreId String
-  chapitre   Chapitre  @relation(fields: [chapitreId], references: [id], onDelete: Cascade)
+  chapitre   Chapitre    @relation(fields: [chapitreId], references: [id], onDelete: Cascade)
   questions  Question[]
   tentatives Tentative[]
+
   @@map("quiz")
 }
 
@@ -94,6 +163,7 @@ model Question {
   ordre           Int
   quizId          String
   quiz            Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
   @@unique([quizId, ordre])
   @@map("questions")
 }
@@ -108,46 +178,50 @@ model Progression {
   creeLe        DateTime          @default(now())
   misAJourLe    DateTime          @updatedAt
   utilisateurId String
-  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  utilisateur   Utilisateur       @relation(fields: [utilisateurId], references: [id])
   chapitreId    String
-  chapitre      Chapitre    @relation(fields: [chapitreId], references: [id])
+  chapitre      Chapitre          @relation(fields: [chapitreId], references: [id])
+
   @@unique([utilisateurId, chapitreId])
   @@map("progressions")
 }
 
 model Tentative {
-  id            String    @id @default(uuid())
+  id            String      @id @default(uuid())
   reponses      Json
   score         Int
-  xpGagne       Int       @default(0)
+  xpGagne       Int         @default(0)
   dureeSec      Int?
-  commenceLe    DateTime  @default(now())
+  commenceLe    DateTime    @default(now())
   termineLeAt   DateTime?
   utilisateurId String
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
   quizId        String
   quiz          Quiz        @relation(fields: [quizId], references: [id])
+
   @@map("tentatives")
 }
 
 model Badge {
-  id           String   @id @default(uuid())
-  nom          String   @unique
+  id           String             @id @default(uuid())
+  nom          String             @unique
   description  String
   icone        String
   condition    Json
-  creeLe       DateTime @default(now())
+  creeLe       DateTime           @default(now())
   utilisateurs BadgeUtilisateur[]
+
   @@map("badges")
 }
 
 model BadgeUtilisateur {
-  id            String   @id @default(uuid())
-  obtenuLe      DateTime @default(now())
+  id            String      @id @default(uuid())
+  obtenuLe      DateTime    @default(now())
   utilisateurId String
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
   badgeId       String
   badge         Badge       @relation(fields: [badgeId], references: [id])
+
   @@unique([utilisateurId, badgeId])
   @@map("badges_utilisateurs")
 }

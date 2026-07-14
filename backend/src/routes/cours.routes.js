@@ -17,6 +17,17 @@ router.get('/', async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Erreur' }) }
 })
 
+router.get('/mes-cours', authentifier, autoriser('PROFESSEUR', 'ADMIN'), async (req, res) => {
+  try {
+    const cours = await prisma.cours.findMany({
+      where: { auteurId: req.utilisateur.id },
+      include: { _count: { select: { chapitres: true } } },
+      orderBy: { creeLe: 'desc' }
+    })
+    res.json(cours)
+  } catch (err) { res.status(500).json({ message: 'Erreur' }) }
+})
+
 router.get('/:id', async (req, res) => {
   try {
     const cours = await prisma.cours.findUnique({
@@ -32,10 +43,9 @@ router.get('/:id', async (req, res) => {
 })
 
 router.post('/', authentifier, autoriser('PROFESSEUR', 'ADMIN'), [
-  body('titre').notEmpty(),
-  body('description').notEmpty(),
-  body('matiere').notEmpty(),
-  body('niveau').isIn(['COLLEGE', 'LYCEE', 'UNIVERSITE']),
+  body('titre').notEmpty().withMessage('Titre requis'),
+  body('matiere').notEmpty().withMessage('Matière requise'),
+  body('niveau').isIn(['COLLEGE', 'LYCEE', 'UNIVERSITE']).withMessage('Niveau invalide'),
 ], async (req, res) => {
   const erreurs = validationResult(req)
   if (!erreurs.isEmpty()) return res.status(400).json({ erreurs: erreurs.array() })
@@ -45,6 +55,28 @@ router.post('/', authentifier, autoriser('PROFESSEUR', 'ADMIN'), [
       data: { titre, description, matiere, niveau, classe, imageUrl, auteurId: req.utilisateur.id }
     })
     res.status(201).json(cours)
+  } catch (err) { res.status(500).json({ message: 'Erreur' }) }
+})
+
+router.patch('/:id', authentifier, autoriser('PROFESSEUR', 'ADMIN'), async (req, res) => {
+  const { titre, description, matiere, niveau, classe, imageUrl } = req.body
+  try {
+    const cours = await prisma.cours.findUnique({ where: { id: req.params.id } })
+    if (!cours) return res.status(404).json({ message: 'Cours introuvable' })
+    if (cours.auteurId !== req.utilisateur.id && req.utilisateur.role !== 'ADMIN')
+      return res.status(403).json({ message: 'Action non autorisée' })
+    const mis = await prisma.cours.update({
+      where: { id: req.params.id },
+      data: {
+        ...(titre && { titre }),
+        ...(description !== undefined && { description }),
+        ...(matiere && { matiere }),
+        ...(niveau && { niveau }),
+        ...(classe !== undefined && { classe }),
+        ...(imageUrl !== undefined && { imageUrl }),
+      }
+    })
+    res.json(mis)
   } catch (err) { res.status(500).json({ message: 'Erreur' }) }
 })
 
