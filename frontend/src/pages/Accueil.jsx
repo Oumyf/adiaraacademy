@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import Icone from '../components/Icones'
+import Illustration from '../components/Illustrations'
 import { Revele, Compteur, SymbolesFlottants } from '../components/Animations'
 
 const MATIERES = [
@@ -114,7 +115,7 @@ export default function Accueil() {
             {MATIERES.map(({ icone, classe, label, filtre, desc }, i) => (
               <Revele key={filtre} delai={i * 90}>
                 <Link to={`/cours?matiere=${filtre}`} className={`mat-carte ${classe}`}>
-                  <span className="mat-visuel"><Icone nom={icone} taille={44} /></span>
+                  <span className="mat-visuel"><Illustration matiere={filtre} /></span>
                   <span className="mat-legende">
                     <h3>{label}</h3>
                     <p>{desc}</p>
@@ -140,7 +141,7 @@ export default function Accueil() {
           <div className="carrousel" ref={piste} tabIndex={0} aria-label="Cours à la une">
             {A_LA_UNE.map(c => (
               <Link key={c.titre} to={`/cours?matiere=${c.matiere}`} className={`cours-une ${c.classe}`}>
-                <span className="cours-une-visuel"><Icone nom={c.icone} taille={56} /><i>{c.niveau}</i></span>
+                <span className="cours-une-visuel"><Illustration matiere={c.matiere} /><i>{c.niveau}</i></span>
                 <span className="cours-une-corps">
                   <h3>{c.titre}</h3>
                   <p>{c.desc}</p>
