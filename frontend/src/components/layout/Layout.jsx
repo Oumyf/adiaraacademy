@@ -53,8 +53,7 @@ export default function Layout() {
     <div className={`app${pathname === "/" ? " nav-sur-hero" : ""}`} style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <nav className={`nav${defile ? " nav-defile" : ""}`} aria-label="Navigation principale">
         <NavLink to="/" className="nav-marque" onClick={fermerMenu}>
-          <Logo />
-          <span>Adiara<em>Academy</em></span>
+          <Logo hauteur={50} />
         </NavLink>
 
         <div className="nav-liens">
@@ -120,7 +119,7 @@ export default function Layout() {
       <footer className="pied">
         <div className="pied-int">
           <div>
-            <div className="nav-marque" style={{ marginBottom: 12 }}><Logo taille={30} /><span>Adiara<em>Academy</em></span></div>
+            <div className="nav-marque" style={{ marginBottom: 12 }}><Logo hauteur={44} /></div>
             <p style={{ fontSize: 14, maxWidth: "34ch" }}>Maths, Physique, Chimie, SVT et Informatique, du collège à l'université, pensés pour le programme sénégalais.</p>
           </div>
           <div>

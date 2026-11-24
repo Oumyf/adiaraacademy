@@ -1348,3 +1348,7 @@ a.ligne-dash:hover { border-color: var(--foret-clair); background: var(--foret-p
   .an-trace { stroke-dasharray: none; }
   .an-ligne { transform: none; }
 }
+
+/* LOGO officiel (image) */
+.nav-marque img { height: 50px; width: auto; }
+@media (max-width: 640px) { .nav-marque img { height: 34px; } }
