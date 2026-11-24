@@ -82,7 +82,7 @@ function CarteEnfant({ enfant, delai }) {
         <div style={{ marginTop: '1.2rem', paddingTop: '1.1rem', borderTop: '1px solid var(--bord)' }}>
           <h3 className="sous-titre-dash">Badges</h3>
           <div className="puces-dash" style={{ marginBottom: 0 }}>
-            {enfant.badges.map(b => <span key={b.id} title={b.badge.description} style={{ background: 'var(--or-pale)', color: '#8A5E0B' }}>{b.badge.icone} {b.badge.nom}</span>)}
+            {enfant.badges.map(b => <span key={b.id} title={b.badge.description} style={{ background: 'var(--or-pale)', color: 'var(--or)' }}>{b.badge.icone} {b.badge.nom}</span>)}
           </div>
         </div>
       )}

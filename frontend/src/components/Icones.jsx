@@ -28,6 +28,8 @@ const chemins = {
   alerte:   <><path d="M12 3 2.500 20h19z"/><path d="M12 10v4M12 17.500v.01"/></>,
   menu:     <path d="M4 7h16M4 12h16M4 17h16"/>,
   fermer:   <path d="M6 6l12 12M18 6 6 18"/>,
+  soleil:   <><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></>,
+  lune:     <path d="M20 14.5A8.500 8.500 0 0 1 9.500 4 8.500 8.500 0 1 0 20 14.500z"/>,
 }
 
 export default function Icone({ nom, taille = 24, style, className }) {

@@ -36,7 +36,7 @@ export default class ErrorBoundary extends Component {
             </a>
           </div>
           {import.meta.env.DEV && (
-            <pre style={{ marginTop: '1rem', padding: '1rem', background: '#FFF5F5', border: '1px solid #FEB2B2', borderRadius: 'var(--r-md)', fontSize: '12px', color: 'var(--erreur)', textAlign: 'left', maxWidth: '600px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+            <pre style={{ marginTop: '1rem', padding: '1rem', background: 'var(--tb-fff5f5, var(--blanc))', border: '1px solid #FEB2B2', borderRadius: 'var(--r-md)', fontSize: '12px', color: 'var(--erreur)', textAlign: 'left', maxWidth: '600px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
               {this.state.erreur.toString()}
             </pre>
           )}

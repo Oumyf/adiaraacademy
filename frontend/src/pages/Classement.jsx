@@ -60,7 +60,7 @@ export default function Classement() {
                       <div style={{ fontWeight: 600, fontSize: 14.5 }}>{u.prenom} {u.nom}</div>
                       <div style={{ fontSize: 12.5, color: 'var(--texte-3)' }}>{u.ecole || LABEL_N[u.niveau]}{u.streak > 0 ? ` · ${u.streak} jour${u.streak > 1 ? 's' : ''} de suite` : ''}</div>
                     </div>
-                    <span className="nav-xp" style={{ background: 'var(--or-pale)', color: '#8A5E0B' }}>{u.xpTotal} XP</span>
+                    <span className="nav-xp" style={{ background: 'var(--or-pale)', color: 'var(--or)' }}>{u.xpTotal} XP</span>
                   </Revele>
                 ))}
               </div>

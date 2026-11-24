@@ -10,6 +10,17 @@ export default function Layout() {
   const { pathname } = useLocation()
   const [defile, setDefile] = useState(false)
   const [hautVisible, setHautVisible] = useState(false)
+  const [theme, setTheme] = useState(() => document.documentElement.getAttribute("data-theme") || "light")
+
+  const basculerTheme = () => {
+    const suivant = theme === "dark" ? "light" : "dark"
+    const racine = document.documentElement
+    racine.classList.add("theme-transition")
+    racine.setAttribute("data-theme", suivant)
+    try { localStorage.setItem("aa_theme", suivant) } catch { /* stockage indisponible */ }
+    setTheme(suivant)
+    window.setTimeout(() => racine.classList.remove("theme-transition"), 450)
+  }
 
   useEffect(() => {
     const surDefilement = () => { setDefile(window.scrollY > 24); setHautVisible(window.scrollY > 600) }
@@ -66,9 +77,14 @@ export default function Layout() {
           )}
         </div>
 
+        <div className="nav-droite">
+          <button type="button" className="bascule-theme" onClick={basculerTheme} aria-label={theme === "dark" ? "Passer au thème clair" : "Passer au thème sombre"} title={theme === "dark" ? "Thème clair" : "Thème sombre"}>
+            <Icone key={theme} nom={theme === "dark" ? "soleil" : "lune"} taille={18} />
+          </button>
         <button className="nav-burger" aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={menuOuvert} onClick={() => setMenuOuvert(o => !o)}>
           <Icone nom={menuOuvert ? "fermer" : "menu"} />
         </button>
+        </div>
       </nav>
 
       <div className={`nav-mobile${menuOuvert ? " ouvert" : ""}`} role="navigation" aria-label="Navigation mobile">
