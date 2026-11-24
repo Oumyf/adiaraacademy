@@ -36,11 +36,17 @@ export default function Icone({ nom, taille = 24, style, className }) {
   return <svg {...base} width={taille} height={taille} style={style} className={className}>{chemins[nom]}</svg>
 }
 
+// Logo officiel (prototype validé) : carré doré arrondi avec un « A » serif vert forêt.
+// Le mot-symbole s'écrit « Adiara » en blanc suivi de « Academy » en or, en Instrument Serif.
 export function Logo({ taille = 34 }) {
   return (
-    <svg width={taille} height={taille} viewBox="0 0 40 40" aria-hidden="true">
-      <rect width="40" height="40" rx="10" fill="var(--or)"/>
-      <path d="M20 8 31 31h-4.2l-2.2-5H15.400l-2.200 5H9zM16.900 22.500h6.200L20 15z" fill="var(--foret)" fillRule="evenodd"/>
-    </svg>
+    <span
+      aria-hidden="true"
+      style={{
+        width: taille, height: taille, borderRadius: Math.round(taille * 0.265), background: '#C8912A', color: '#1A4A2E',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none',
+        fontFamily: "'Instrument Serif', Georgia, serif", fontSize: Math.round(taille * 0.62), lineHeight: 1,
+      }}
+    >A</span>
   )
 }

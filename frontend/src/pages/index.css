@@ -213,9 +213,9 @@ img { max-width: 100%; display: block; }
   background: rgba(26,74,46,.96); backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
-.nav-marque { display: flex; align-items: center; gap: 10px; color: #fff; }
+.nav-marque { display: flex; align-items: center; gap: 11px; color: #fff; }
 .nav-marque:hover { color: #fff; }
-.nav-marque span { font: 400 23px/1 var(--serif-display); letter-spacing: -.2px; }
+.nav-marque span { font: 400 25px/1 var(--serif-display); letter-spacing: .3px; }
 .nav-marque em { font-style: normal; color: var(--or); }
 .nav-lien {
   white-space: nowrap; position: relative; color: rgba(255,255,255,.78); font: 600 14px var(--sans);
