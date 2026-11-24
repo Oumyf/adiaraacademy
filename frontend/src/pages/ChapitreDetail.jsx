@@ -1,29 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import Icone from '../components/Icones'
 
 function EcranVerrouille({ xpObtenu, cours, extrait }) {
   return (
-    <div style={{ position: 'relative', borderRadius: 'var(--r-xl)', overflow: 'hidden', border: '1px solid var(--bord)', marginBottom: '2rem', boxShadow: 'var(--ombre-md)' }}>
-      <div style={{ filter: 'blur(5px)', userSelect: 'none', pointerEvents: 'none', padding: '2rem', background: 'var(--blanc)', lineHeight: '1.8', fontSize: '15px', maxHeight: '280px', overflow: 'hidden', color: 'var(--texte)', whiteSpace: 'pre-wrap' }}>
-        {extrait || 'Contenu réservé aux membres Premium.'}
-      </div>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(26,74,46,.82)', padding: '2rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🔒</div>
-        <h3 style={{ fontFamily: 'var(--serif)', fontSize: '1.5rem', fontWeight: '400', color: '#fff', marginBottom: '0.75rem' }}>Contenu Premium</h3>
-        <p style={{ color: 'rgba(255,255,255,.75)', fontSize: '14px', maxWidth: '320px', lineHeight: '1.6', marginBottom: '1.75rem' }}>
-          Ce chapitre fait partie du cours <strong style={{ color: '#fff' }}>{cours?.titre}</strong>, réservé aux membres Premium.
-        </p>
-        <Link to="/tarifs" style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--or)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', textDecoration: 'none' }}>
-          Passer à Premium →
-        </Link>
-        <div style={{ marginTop: '12px', color: 'rgba(255,255,255,.4)', fontSize: '12px' }}>
-          +{xpObtenu} XP vous attendent après les quiz
-        </div>
+    <div className="verrou">
+      <div className="verrou-flou">{extrait || 'Contenu réservé aux membres Premium.'}</div>
+      <div className="verrou-voile">
+        <span className="verrou-ico"><Icone nom="cadenas" taille={30} /></span>
+        <h3>Contenu Premium</h3>
+        <p>Ce chapitre fait partie du cours <strong>{cours?.titre}</strong>, réservé aux membres Premium.</p>
+        <Link to="/tarifs" className="btn btn-or">Passer à Premium <Icone nom="fleche" taille={18} /></Link>
+        <div className="verrou-note">+{xpObtenu} XP t'attendent après les quiz</div>
       </div>
     </div>
   )
@@ -34,81 +28,91 @@ export default function ChapitreDetail() {
   const { utilisateur } = useAuth()
   const [chapitre, setChapitre] = useState(null)
   const [chargement, setChargement] = useState(true)
+  const [progression, setProgression] = useState(0)
 
   const estGestionnaire = utilisateur && (utilisateur.role === 'PROFESSEUR' || utilisateur.role === 'ADMIN')
 
   useEffect(() => {
-    api.get(`/chapitres/${id}`).then(r => setChapitre(r.data)).finally(() => setChargement(false))
+    setChargement(true)
+    api.get(`/chapitres/${id}`).then(r => setChapitre(r.data)).catch(() => setChapitre(null)).finally(() => setChargement(false))
   }, [id])
 
-  if (chargement) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--texte-3)' }}>Chargement...</div>
-  if (!chapitre) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--erreur)' }}>Chapitre introuvable.</div>
+  // Barre de lecture en haut de l'écran
+  useEffect(() => {
+    const maj = () => {
+      const h = document.documentElement
+      const total = h.scrollHeight - h.clientHeight
+      setProgression(total > 0 ? Math.min(100, (h.scrollTop / total) * 100) : 0)
+    }
+    window.addEventListener('scroll', maj, { passive: true }); maj()
+    return () => window.removeEventListener('scroll', maj)
+  }, [chapitre])
+
+  if (chargement) return <div className="vide"><div className="squelette" style={{ width: 280, height: 18, borderRadius: 9 }} /></div>
+  if (!chapitre) return (
+    <div className="vide">
+      <Icone nom="livre" taille={38} />
+      <h2>Chapitre introuvable</h2>
+      <Link to="/cours" className="btn btn-foret">Voir les cours</Link>
+    </div>
+  )
+
+  const mots = (chapitre.contenu || '').split(/\s+/).filter(Boolean).length
+  const minutes = Math.max(1, Math.round(mots / 180))
+  const nbQuiz = chapitre.quiz?.length || 0
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
-      <Link to={`/cours/${chapitre.cours?.id}`} style={{ fontSize: '13px', color: 'var(--texte-3)', display: 'inline-block', marginBottom: '1.5rem' }}>
-        ← {chapitre.cours?.titre}
-      </Link>
+    <div>
+      <div className="lecture-barre" aria-hidden="true"><i style={{ width: `${progression}%` }} /></div>
 
-      <h1 style={{ fontFamily: 'var(--serif)', fontSize: '2rem', fontWeight: '400', marginBottom: '0.5rem' }}>{chapitre.titre}</h1>
-      <div style={{ fontSize: '13px', color: 'var(--texte-3)', marginBottom: '2rem' }}>+{chapitre.xpObtenu} XP après les quiz</div>
-
-      {chapitre.verrouille && <EcranVerrouille xpObtenu={chapitre.xpObtenu} cours={chapitre.cours} extrait={chapitre.contenu} />}
-
-      {!chapitre.verrouille && <div style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-lg)', padding: '2rem', boxShadow: 'var(--ombre-sm)', marginBottom: '2rem', lineHeight: '1.8', fontSize: '15px', color: 'var(--texte)' }} className="contenu-chapitre">
-        <style>{`
-          .contenu-chapitre h2 { font-family: var(--serif); font-size: 1.4rem; font-weight: 400; margin: 1.5rem 0 0.75rem; color: var(--foret); }
-          .contenu-chapitre h3 { font-family: var(--serif); font-size: 1.15rem; font-weight: 400; margin: 1.25rem 0 0.5rem; color: var(--foret); }
-          .contenu-chapitre p { margin-bottom: 1rem; }
-          .contenu-chapitre ul, .contenu-chapitre ol { padding-left: 1.5rem; margin-bottom: 1rem; }
-          .contenu-chapitre li { margin-bottom: 0.25rem; }
-          .contenu-chapitre table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-          .contenu-chapitre th, .contenu-chapitre td { border: 1px solid var(--bord); padding: 8px 12px; text-align: left; font-size: 14px; }
-          .contenu-chapitre th { background: var(--foret-pale); font-weight: 600; color: var(--foret); }
-          .contenu-chapitre strong { font-weight: 600; }
-          .contenu-chapitre code { background: var(--sable); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-          .contenu-chapitre blockquote { border-left: 3px solid var(--foret); padding-left: 1rem; color: var(--texte-2); margin: 1rem 0; }
-        `}</style>
-        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-          {chapitre.contenu}
-        </ReactMarkdown>
-      </div>}
-
-      {/* Section quiz */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', margin: 0 }}>
-          Quiz de ce chapitre {chapitre.quiz?.length > 0 && `(${chapitre.quiz.length})`}
-        </h2>
-        {estGestionnaire && (
-          <Link to={`/chapitres/${id}/creer-quiz`} style={{ padding: '7px 14px', background: 'var(--foret)', color: '#fff', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: '600', textDecoration: 'none' }}>
-            + Quiz
-          </Link>
-        )}
+      <div className="entete-page">
+        <div className="entete-page-int" style={{ maxWidth: 780 }}>
+          <Link to={`/cours/${chapitre.cours?.id}`} className="lien-retour"><Icone nom="retour" taille={16} /> {chapitre.cours?.titre}</Link>
+          <h1>{chapitre.titre}</h1>
+          <p style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12 }}>
+            {!chapitre.verrouille && <span className="puce-clair"><Icone nom="horloge" taille={14} /> {minutes} min de lecture</span>}
+            <span className="puce-clair"><Icone nom="etoile" taille={14} /> +{chapitre.xpObtenu} XP après les quiz</span>
+          </p>
+        </div>
       </div>
 
-      {chapitre.quiz?.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-lg)', color: 'var(--texte-3)', fontSize: '14px' }}>
-          Aucun quiz pour ce chapitre.
-          {estGestionnaire && <> <Link to={`/chapitres/${id}/creer-quiz`} style={{ color: 'var(--foret)', fontWeight: '600' }}>Ajouter le premier</Link></>}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {chapitre.quiz.map(q => (
-            <Link key={q.id} to={`/quiz/${q.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-lg)', textDecoration: 'none', boxShadow: 'var(--ombre-sm)', transition: 'all .15s ease' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--foret)'; e.currentTarget.style.background = 'var(--foret-pale)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bord)'; e.currentTarget.style.background = 'var(--blanc)' }}
-            >
-              <div>
-                <div style={{ fontWeight: '600', color: 'var(--texte)', fontSize: '14px' }}>{q.titre}</div>
-                <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '3px' }}>
-                  {q._count?.questions || 0} questions · {q.dureMin ? `${q.dureMin} min` : 'Sans limite'} · {q.xpMax} XP max
-                </div>
-              </div>
-              <span style={{ background: 'var(--or)', color: '#fff', padding: '8px 18px', borderRadius: 'var(--r-sm)', fontSize: '13px', fontWeight: '600', flexShrink: 0 }}>Commencer →</span>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div style={{ maxWidth: 780, margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
+        {chapitre.verrouille && <EcranVerrouille xpObtenu={chapitre.xpObtenu} cours={chapitre.cours} extrait={chapitre.contenu} />}
+
+        {!chapitre.verrouille && (
+          <article className="lecon contenu-chapitre">
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{chapitre.contenu}</ReactMarkdown>
+          </article>
+        )}
+
+        <section id="quiz" style={{ marginTop: '2.4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: 12 }}>
+            <h2 className="titre-liste">Teste-toi{nbQuiz > 0 ? ` (${nbQuiz} quiz)` : ''}</h2>
+            {estGestionnaire && <Link to={`/chapitres/${id}/creer-quiz`} className="btn btn-foret" style={{ padding: '9px 16px', fontSize: 13.5 }}><Icone nom="plus" taille={16} /> Quiz</Link>}
+          </div>
+
+          {nbQuiz === 0 ? (
+            <div className="vide" style={{ padding: '2rem 1rem' }}>
+              <Icone nom="cible" taille={32} />
+              <p style={{ margin: 0 }}>Aucun quiz pour ce chapitre.</p>
+              {estGestionnaire && <Link to={`/chapitres/${id}/creer-quiz`} className="btn btn-foret">Ajouter le premier quiz</Link>}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 12 }}>
+              {chapitre.quiz.map(q => (
+                <Link key={q.id} to={`/quiz/${q.id}`} className="quiz-carte">
+                  <span className="quiz-carte-ico"><Icone nom="cible" taille={22} /></span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span className="chapitre-titre">{q.titre}</span>
+                    <span className="chapitre-info">{q._count?.questions || 0} questions · {q.dureMin ? `${q.dureMin} min` : 'sans limite de temps'} · jusqu'à {q.xpMax} XP</span>
+                  </span>
+                  <span className="btn btn-or" style={{ padding: '10px 18px', fontSize: 14 }}>Commencer</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   )
 }

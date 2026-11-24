@@ -13,6 +13,8 @@ const certificationRoutes = require('./routes/certification.routes')
 const notificationRoutes  = require('./routes/notification.routes')
 const parentRoutes        = require('./routes/parent.routes')
 const professeurRoutes    = require('./routes/professeur.routes')
+const iaRoutes            = require('./routes/ia.routes')
+const promoRoutes         = require('./routes/promo.routes')
 
 const app = express()
 
@@ -20,6 +22,14 @@ const limiteurAuth = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { message: 'Trop de tentatives, réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+const limiteurPromo = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: { message: 'Trop de tentatives, réessayez plus tard.' },
   standardHeaders: true,
   legacyHeaders: false,
 })
@@ -38,6 +48,9 @@ app.use('/api/certifications', certificationRoutes)
 app.use('/api/notifications',  notificationRoutes)
 app.use('/api/parents',        parentRoutes)
 app.use('/api/professeurs',    professeurRoutes)
+app.use('/api/ia',             iaRoutes)
+app.use('/api/promo/verifier', limiteurPromo)
+app.use('/api/promo',          promoRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', app: 'AdiaraAcademy API', version: '1.0.0' })

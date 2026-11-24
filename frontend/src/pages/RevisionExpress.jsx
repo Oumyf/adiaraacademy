@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
+import Icone from '../components/Icones'
 
 const DUREE_SECONDES = 5 * 60
 
@@ -79,30 +80,26 @@ export default function RevisionExpress() {
 
   if (!aAcces) {
     return (
-      <div style={{ maxWidth: '560px', margin: '4rem auto', padding: '2rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⭐</div>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: '400', marginBottom: '0.75rem' }}>Révision Express</h1>
-        <p style={{ color: 'var(--texte-2)', fontSize: '14px', lineHeight: '1.7', marginBottom: '2rem' }}>
-          Le mode Révision Express est réservé aux membres <strong>Premium</strong>.<br />
-          10 questions aléatoires à traiter en 5 minutes — idéal pour réviser avant un devoir.
-        </p>
-        <Link to="/tarifs" style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--or)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', textDecoration: 'none' }}>
-          Passer à Premium →
-        </Link>
-        <div style={{ marginTop: '1rem' }}>
-          <Link to="/cours" style={{ fontSize: '13px', color: 'var(--texte-3)' }}>Retour aux cours gratuits</Link>
+      <div className="etat-carte">
+        <span className="etat-ico"><Icone nom="cadenas" taille={30} /></span>
+        <h1>Révision express</h1>
+        <p>Ce mode est réservé aux membres <strong>Premium</strong>. Dix questions au hasard, cinq minutes pour répondre : idéal pour réviser avant un devoir.</p>
+        <div style={{ marginTop: '1.4rem', display: 'grid', gap: 12, justifyItems: 'center' }}>
+          <Link to="/tarifs" className="btn btn-or">Passer à Premium</Link>
+          <Link to="/cours" className="lien-doux">Retour aux cours gratuits</Link>
         </div>
       </div>
     )
   }
 
-  if (chargement) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--texte-3)' }}>Chargement...</div>
-  if (erreur)     return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--erreur)' }}>{erreur}</div>
+  if (chargement) return <div className="rev-page"><p>Chargement…</p></div>
+  if (erreur)     return <div className="rev-page"><div className="ia-erreur" role="alert">{erreur}</div></div>
 
   if (questions.length === 0) return (
-    <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--texte-3)' }}>
-      Aucune question disponible.{' '}
-      <Link to="/cours" style={{ color: 'var(--foret)', fontWeight: '500' }}>Voir les cours</Link>
+    <div className="etat-carte">
+      <h1>Pas encore de questions</h1>
+      <p>Aucune question n'est disponible pour le moment.</p>
+      <div style={{ marginTop: '1.2rem' }}><Link to="/cours" className="btn btn-foret">Voir les cours</Link></div>
     </div>
   )
 
@@ -118,127 +115,84 @@ export default function RevisionExpress() {
       return rep.trim().toLowerCase() === (q.reponseAttendue || '').trim().toLowerCase()
     })
     const nbBonnes = scores.filter(Boolean).length
+    const reussi = nbBonnes >= total * 0.7
 
     return (
-      <div style={{ maxWidth: '640px', margin: '3rem auto', padding: '2rem 1.5rem' }}>
-        <div style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '2.5rem', textAlign: 'center', boxShadow: 'var(--ombre-md)', marginBottom: '2rem' }}>
-          <div style={{ fontFamily: 'var(--serif)', fontSize: '3.5rem', color: nbBonnes >= total * 0.7 ? 'var(--succes)' : 'var(--erreur)', marginBottom: '0.5rem' }}>
-            {nbBonnes}/{total}
-          </div>
-          <div style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', marginBottom: '0.5rem' }}>
-            {nbBonnes >= total * 0.7 ? 'Excellent travail !' : 'Continue à réviser !'}
-          </div>
-          <div style={{ color: 'var(--texte-3)', fontSize: '13px', marginBottom: '2rem' }}>
-            {Math.round((nbBonnes / total) * 100)}% de bonnes réponses · Mode entraînement (pas d'XP)
-          </div>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={recommencer} style={{ padding: '11px 24px', background: 'var(--foret)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
-              Recommencer
-            </button>
-            <Link to="/cours" style={{ padding: '11px 24px', background: 'var(--foret-pale)', color: 'var(--foret)', borderRadius: 'var(--r-md)', fontWeight: '600', fontSize: '14px', textDecoration: 'none' }}>
-              Retour aux cours
-            </Link>
+      <div className="rev-page">
+        <div className="rev-bilan">
+          <div className={`rev-score ${reussi ? 'ok' : 'ko'}`}>{nbBonnes}<small>/{total}</small></div>
+          <h1>{reussi ? 'Très bon résultat' : 'Continue à réviser'}</h1>
+          <p>{Math.round((nbBonnes / total) * 100)} % de bonnes réponses. Mode entraînement : cette série ne rapporte pas d'XP.</p>
+          <div className="rev-actions">
+            <button onClick={recommencer} className="btn btn-foret">Recommencer</button>
+            <Link to="/cours" className="btn btn-doux">Retour aux cours</Link>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <h2 className="rev-titre-liste">Correction</h2>
+        <ul className="rev-liste">
           {questions.map((q, i) => {
             const correct = scores[i]
             const repDonnee = reponses[q.id]
-            const bonneRep = q.type === 'REPONSE_LIBRE'
-              ? q.reponseAttendue
-              : q.options?.find?.(o => o.correct)?.texte
+            const bonneRep = q.type === 'REPONSE_LIBRE' ? q.reponseAttendue : q.options?.find?.(o => o.correct)?.texte
+            const etat = correct ? 'ok' : repDonnee ? 'ko' : 'saute'
             return (
-              <div key={q.id} style={{ background: 'var(--blanc)', border: `1px solid ${correct ? 'var(--succes)' : repDonnee ? 'var(--erreur)' : 'var(--bord)'}`, borderRadius: 'var(--r-lg)', padding: '1rem 1.25rem', boxShadow: 'var(--ombre-sm)' }}>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{correct ? '✅' : repDonnee ? '❌' : '⏭️'}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--texte)', marginBottom: '4px' }}>{q.enonce}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--texte-3)' }}>
-                      {repDonnee
-                        ? <><span>Votre réponse : </span><strong style={{ color: correct ? 'var(--succes)' : 'var(--erreur)' }}>{repDonnee}</strong></>
-                        : <span>Non répondu</span>}
-                      {!correct && bonneRep && <><span> · Bonne réponse : </span><strong style={{ color: 'var(--succes)' }}>{bonneRep}</strong></>}
-                    </div>
+              <li key={q.id} className={`rev-ligne ${etat}`}>
+                <span className="rev-ico"><Icone nom={correct ? 'check' : repDonnee ? 'croix' : 'fleche'} taille={16} /></span>
+                <div>
+                  <div className="rev-enonce">{q.enonce}</div>
+                  <div className="rev-detail">
+                    {repDonnee ? <>Ta réponse : <strong>{repDonnee}</strong></> : <>Non répondu</>}
+                    {!correct && bonneRep && <> · Bonne réponse : <strong>{bonneRep}</strong></>}
                   </div>
                 </div>
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       </div>
     )
   }
 
   const q = questions[index]
   const urgence = tempsRestant <= 60
+  const choix = q.type === 'VRAI_FAUX' ? [{ texte: 'Vrai' }, { texte: 'Faux' }] : (q.options || [])
 
   return (
-    <div style={{ maxWidth: '640px', margin: '2rem auto', padding: '1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: '13px', color: 'var(--texte-3)', fontWeight: '500' }}>
-          Question {index + 1}/{questions.length}
+    <div className="rev-page">
+      <div className="rev-haut">
+        <div>
+          <div className="rev-compte">Question {index + 1} sur {questions.length}</div>
+          <div className="rev-barre" role="progressbar" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={index}>
+            <i style={{ width: `${(index / questions.length) * 100}%` }} />
+          </div>
         </div>
-        <div style={{
-          fontFamily: 'var(--serif)',
-          fontSize: '1.5rem',
-          fontWeight: '400',
-          color: urgence ? 'var(--erreur)' : 'var(--foret)',
-          padding: '6px 16px',
-          background: urgence ? '#FEF2F2' : 'var(--foret-pale)',
-          borderRadius: '999px',
-          border: `2px solid ${urgence ? 'var(--erreur)' : 'var(--foret)'}`,
-        }}>
-          {formatTemps(tempsRestant)}
+        <div className={`rev-chrono ${urgence ? 'urgent' : ''}`} aria-label={`Temps restant ${formatTemps(tempsRestant)}`}>
+          <Icone nom="horloge" taille={18} /> {formatTemps(tempsRestant)}
         </div>
       </div>
 
-      <div style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '2rem', boxShadow: 'var(--ombre-md)', marginBottom: '1.25rem' }}>
-        <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--texte-3)', letterSpacing: '.5px', marginBottom: '1rem' }}>
-          {q.quiz?.titre?.toUpperCase()}
-        </div>
-        <p style={{ fontSize: '16px', fontWeight: '500', color: 'var(--texte)', lineHeight: '1.6', margin: 0 }}>{q.enonce}</p>
+      <div className="rev-question">
+        {q.quiz?.titre && <div className="rev-source">{q.quiz.titre}</div>}
+        <p>{q.enonce}</p>
       </div>
 
       {(q.type === 'QCM' || q.type === 'VRAI_FAUX') && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {(q.type === 'VRAI_FAUX'
-            ? [{ texte: 'Vrai' }, { texte: 'Faux' }]
-            : (q.options || [])
-          ).map((opt, i) => (
-            <button key={i} onClick={() => repondre(opt.texte)}
-              style={{ width: '100%', textAlign: 'left', padding: '14px 18px', background: 'var(--blanc)', border: '2px solid var(--bord)', borderRadius: 'var(--r-lg)', fontSize: '14px', fontWeight: '500', color: 'var(--texte)', cursor: 'pointer', transition: 'all .15s ease' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--foret)'; e.currentTarget.style.background = 'var(--foret-pale)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bord)'; e.currentTarget.style.background = 'var(--blanc)' }}
-            >
-              {opt.texte}
-            </button>
+        <div className="rev-choix">
+          {choix.map((opt, i) => (
+            <button key={i} onClick={() => repondre(opt.texte)} className="rev-option">{opt.texte}</button>
           ))}
         </div>
       )}
 
       {q.type === 'REPONSE_LIBRE' && (
-        <form onSubmit={e => { e.preventDefault(); if (reponseSaisie.trim()) repondre(reponseSaisie.trim()) }} style={{ display: 'flex', gap: '10px' }}>
-          <input
-            type="text"
-            value={reponseSaisie}
-            onChange={e => setReponseSaisie(e.target.value)}
-            placeholder="Votre réponse..."
-            autoFocus
-            aria-label="Réponse"
-            style={{ flex: 1, padding: '12px 16px', border: '2px solid var(--bord)', borderRadius: 'var(--r-lg)', fontSize: '14px', color: 'var(--texte)', background: 'var(--blanc)', outline: 'none' }}
-            onFocus={e => e.target.style.borderColor = 'var(--foret)'}
-            onBlur={e => e.target.style.borderColor = 'var(--bord)'}
-          />
-          <button type="submit" disabled={!reponseSaisie.trim()} style={{ padding: '12px 22px', background: 'var(--foret)', color: '#fff', border: 'none', borderRadius: 'var(--r-lg)', fontWeight: '700', fontSize: '14px', cursor: reponseSaisie.trim() ? 'pointer' : 'not-allowed', opacity: reponseSaisie.trim() ? 1 : 0.5 }}>
-            →
-          </button>
+        <form onSubmit={e => { e.preventDefault(); if (reponseSaisie.trim()) repondre(reponseSaisie.trim()) }} className="rev-libre">
+          <input type="text" value={reponseSaisie} onChange={e => setReponseSaisie(e.target.value)} placeholder="Ta réponse" autoFocus aria-label="Réponse" />
+          <button type="submit" disabled={!reponseSaisie.trim()} className="btn btn-foret">Valider</button>
         </form>
       )}
 
-      <button onClick={() => repondre(null)} style={{ marginTop: '1rem', background: 'none', border: 'none', fontSize: '13px', color: 'var(--texte-3)', cursor: 'pointer', padding: '4px' }}>
-        Passer →
-      </button>
+      <button onClick={() => repondre(null)} className="lien-doux" style={{ marginTop: '1rem' }}>Passer cette question</button>
     </div>
   )
 }

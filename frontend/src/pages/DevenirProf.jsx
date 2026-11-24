@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
+import Icone from '../components/Icones'
 
 const MATIERES = ['MATHEMATIQUES', 'PHYSIQUE', 'CHIMIE', 'SCIENCES_VIE_TERRE', 'INFORMATIQUE']
 const LABEL_M  = { MATHEMATIQUES: 'Mathématiques', PHYSIQUE: 'Physique', CHIMIE: 'Chimie', SCIENCES_VIE_TERRE: 'SVT', INFORMATIQUE: 'Informatique' }
 const VILLES   = ['Dakar', 'Thiès', 'Saint-Louis', 'Mbour']
+const MAX_MATIERES = 3
 
 export default function DevenirProf() {
   const { utilisateur } = useAuth()
-  const navigate = useNavigate()
   const [form, setForm] = useState({ bio: '', matieres: [], tarifHeure: '', ville: '' })
   const [succes, setSucces] = useState(false)
   const [erreur, setErreur] = useState(null)
@@ -24,8 +25,6 @@ export default function DevenirProf() {
     }
   }, [utilisateur])
 
-  const MAX_MATIERES = 3
-
   const toggleMatiere = m => {
     setForm(f => {
       if (f.matieres.includes(m)) return { ...f, matieres: f.matieres.filter(x => x !== m) }
@@ -36,7 +35,7 @@ export default function DevenirProf() {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    if (!form.matieres.length) { setErreur('Sélectionnez au moins une matière.'); return }
+    if (!form.matieres.length) { setErreur('Sélectionne au moins une matière.'); return }
     setErreur(null)
     setChargement(true)
     try {
@@ -48,7 +47,7 @@ export default function DevenirProf() {
       })
       setSucces(true)
     } catch (err) {
-      setErreur(err.response?.data?.message || 'Une erreur est survenue.')
+      setErreur(err.response?.data?.message || 'Une erreur est survenue. Réessaie dans un instant.')
     } finally {
       setChargement(false)
     }
@@ -56,154 +55,92 @@ export default function DevenirProf() {
 
   if (!utilisateur) {
     return (
-      <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👨‍🏫</div>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: '400', marginBottom: '0.75rem' }}>Devenir prof particulier</h1>
-        <p style={{ color: 'var(--texte-2)', fontSize: '14px', lineHeight: '1.7', marginBottom: '2rem' }}>
-          Rejoignez notre réseau de professeurs vérifiés et aidez les élèves sénégalais à progresser.
-        </p>
-        <Link to="/inscription" style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--terre)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', textDecoration: 'none' }}>
-          Créer un compte
-        </Link>
+      <div className="etat-carte">
+        <span className="etat-ico"><Icone nom="eleves" taille={30} /></span>
+        <h1>Donne des cours particuliers</h1>
+        <p>Rejoins le réseau de professeurs vérifiés d'AdiaraAcademy et accompagne des élèves sénégalais, du collège à l'université.</p>
+        <div style={{ marginTop: '1.4rem' }}>
+          <Link to="/inscription" className="btn btn-foret">Créer un compte</Link>
+        </div>
       </div>
     )
   }
 
   if (succes) {
     return (
-      <div style={{ maxWidth: '540px', margin: '4rem auto', padding: '2rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.6rem', fontWeight: '400', marginBottom: '0.75rem' }}>Candidature envoyée !</h2>
-        <p style={{ color: 'var(--texte-2)', fontSize: '14px', lineHeight: '1.7', marginBottom: '1.5rem' }}>
-          Notre équipe vérifiera votre diplôme et votre profil sous <strong>48h</strong>.
-          Vous recevrez une notification une fois votre profil activé.
-        </p>
-        <div style={{ padding: '1rem 1.25rem', background: '#FEF6E4', borderRadius: 'var(--r-lg)', border: '1px solid var(--or)', fontSize: '13px', color: '#92400E', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-          <strong>Note :</strong> La vérification des diplômes est manuelle. Seuls les professeurs vérifiés apparaissent dans la liste publique.
+      <div className="etat-carte">
+        <span className="etat-ico"><Icone nom="check" taille={30} /></span>
+        <h1>Candidature envoyée</h1>
+        <p>Notre équipe vérifie ton diplôme et ton profil sous <strong>48 h</strong>. Tu recevras une notification dès que ton profil sera activé.</p>
+        <div className="note-douce" style={{ margin: '1.4rem 0' }}>
+          La vérification des diplômes est manuelle. Seuls les professeurs vérifiés apparaissent dans la liste publique.
         </div>
-        <Link to="/tuteurs" style={{ display: 'inline-block', padding: '10px 24px', background: 'var(--foret)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '600', fontSize: '14px', textDecoration: 'none' }}>
-          Voir la liste des profs
-        </Link>
+        <Link to="/tuteurs" className="btn btn-foret">Voir la liste des profs</Link>
       </div>
     )
   }
 
   if (candidatureExistante) {
     return (
-      <div style={{ maxWidth: '580px', margin: '3rem auto', padding: '2rem 1.5rem' }}>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: '400', marginBottom: '1.5rem' }}>Ma candidature</h1>
-        <div style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '1.75rem', boxShadow: 'var(--ombre-sm)', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '1.2rem' }}>{candidatureExistante.verifie ? '✅' : '⏳'}</span>
-            <span style={{ fontWeight: '600', color: candidatureExistante.verifie ? 'var(--succes)' : 'var(--or)' }}>
-              {candidatureExistante.verifie ? 'Profil vérifié et actif' : 'En attente de vérification'}
-            </span>
-          </div>
-          <div style={{ fontSize: '13px', color: 'var(--texte-2)', lineHeight: '1.7' }}>
-            <div><strong>Matières :</strong> {candidatureExistante.matieres?.map(m => LABEL_M[m]).join(', ')}</div>
-            <div><strong>Ville :</strong> {candidatureExistante.ville}</div>
-            {candidatureExistante.tarifHeure && <div><strong>Tarif :</strong> {candidatureExistante.tarifHeure.toLocaleString('fr-FR')} FCFA/h</div>}
-          </div>
+      <div className="etat-carte">
+        <span className="etat-ico"><Icone nom={candidatureExistante.verifie ? 'bouclier' : 'horloge'} taille={30} /></span>
+        <h1>{candidatureExistante.verifie ? 'Ton profil est actif' : 'Candidature en cours de vérification'}</h1>
+        <div className="dp-resume">
+          <div><strong>Matières :</strong> {candidatureExistante.matieres?.map(m => LABEL_M[m]).join(', ')}</div>
+          <div><strong>Ville :</strong> {candidatureExistante.ville}</div>
+          {candidatureExistante.tarifHeure && <div><strong>Tarif :</strong> {candidatureExistante.tarifHeure.toLocaleString('fr-FR')} FCFA par heure</div>}
         </div>
-        {candidatureExistante.verifie && (
-          <Link to="/tuteurs" style={{ display: 'inline-block', padding: '10px 22px', background: 'var(--terre)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '600', fontSize: '14px', textDecoration: 'none' }}>
-            Voir mon profil public →
-          </Link>
-        )}
+        {candidatureExistante.verifie
+          ? <Link to="/tuteurs" className="btn btn-foret">Voir les profs du site</Link>
+          : <p>Tu seras prévenu dès que la vérification sera terminée.</p>}
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '2rem', fontWeight: '400', marginBottom: '6px' }}>Devenir prof particulier</h1>
-        <p style={{ color: 'var(--texte-2)', fontSize: '14px', lineHeight: '1.6' }}>
-          Partagez votre expertise et gagnez <strong>90%</strong> des revenus générés (commission 10% AdiaraAcademy).
-          Notre équipe vérifie chaque profil avant publication.
-        </p>
-      </div>
+    <div className="form-page etroit">
+      <h1>Devenir prof particulier</h1>
+      <p className="form-intro">Tu gardes <strong>90 %</strong> des revenus de tes cours, AdiaraAcademy prélève 10 %. Chaque profil est vérifié par notre équipe avant d'être publié.</p>
 
-      <div style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '2rem', boxShadow: 'var(--ombre-sm)' }}>
-        <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="form-carte">
+        <label className="champ-groupe">Présentation *
+          <textarea rows={4} required value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+            placeholder="Ton parcours, tes méthodes, ton expérience avec les élèves" />
+        </label>
 
-          {/* Bio */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--texte-2)', marginBottom: '6px' }}>
-              Présentation <span style={{ color: 'var(--erreur)' }}>*</span>
-            </label>
-            <textarea
-              rows={4}
-              placeholder="Décrivez votre parcours, vos méthodes pédagogiques, votre expérience..."
-              value={form.bio}
-              onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-              required
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '14px', resize: 'vertical', fontFamily: 'var(--sans)', outline: 'none', color: 'var(--texte)' }}
-              onFocus={e => e.target.style.borderColor = 'var(--foret)'}
-              onBlur={e => e.target.style.borderColor = 'var(--bord)'}
-            />
+        <div className="champ-groupe" role="group" aria-labelledby="lab-matieres">
+          <span id="lab-matieres">Matières enseignées * <span className="form-aide">({form.matieres.length}/{MAX_MATIERES} au maximum)</span></span>
+          <div className="puces">
+            {MATIERES.map(m => {
+              const actif = form.matieres.includes(m)
+              const desactive = !actif && form.matieres.length >= MAX_MATIERES
+              return (
+                <button key={m} type="button" onClick={() => toggleMatiere(m)} disabled={desactive} aria-pressed={actif} className={`puce ${actif ? 'actif' : ''}`}>
+                  {actif && <Icone nom="check" taille={14} />}{LABEL_M[m]}
+                </button>
+              )
+            })}
           </div>
+        </div>
 
-          {/* Matières */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--texte-2)', marginBottom: '8px' }}>
-              Matières enseignées <span style={{ color: 'var(--erreur)' }}>*</span>
-              <span style={{ fontWeight: '400', color: 'var(--texte-3)', marginLeft: '8px' }}>
-                ({form.matieres.length}/{MAX_MATIERES} max)
-              </span>
-            </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {MATIERES.map(m => {
-                const selectionne = form.matieres.includes(m)
-                const desactive = !selectionne && form.matieres.length >= MAX_MATIERES
-                return (
-                  <button key={m} type="button" onClick={() => toggleMatiere(m)} disabled={desactive}
-                    style={{ padding: '7px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: '500', border: '2px solid', borderColor: selectionne ? 'var(--foret)' : 'var(--bord)', background: selectionne ? 'var(--foret)' : 'var(--blanc)', color: selectionne ? '#fff' : desactive ? 'var(--texte-3)' : 'var(--texte-2)', cursor: desactive ? 'not-allowed' : 'pointer', opacity: desactive ? 0.5 : 1 }}>
-                    {selectionne ? '✓ ' : ''}{LABEL_M[m]}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+        <label className="champ-groupe">Ville *
+          <select value={form.ville} onChange={e => setForm(f => ({ ...f, ville: e.target.value }))} required>
+            <option value="">Choisir une ville</option>
+            {VILLES.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+        </label>
 
-          {/* Ville */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--texte-2)', marginBottom: '6px' }}>
-              Ville <span style={{ color: 'var(--erreur)' }}>*</span>
-            </label>
-            <select value={form.ville} onChange={e => setForm(f => ({ ...f, ville: e.target.value }))} required
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '14px', background: 'var(--blanc)', color: form.ville ? 'var(--texte)' : 'var(--texte-3)', outline: 'none' }}>
-              <option value="">Sélectionner une ville</option>
-              {VILLES.map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
+        <label className="champ-groupe">Tarif par heure, en FCFA (facultatif)
+          <input type="number" min="0" placeholder="5000" value={form.tarifHeure} onChange={e => setForm(f => ({ ...f, tarifHeure: e.target.value }))} />
+        </label>
 
-          {/* Tarif */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--texte-2)', marginBottom: '6px' }}>
-              Tarif horaire (FCFA) <span style={{ color: 'var(--texte-3)', fontWeight: '400' }}>— optionnel</span>
-            </label>
-            <input type="number" min="0" placeholder="ex: 5000" value={form.tarifHeure} onChange={e => setForm(f => ({ ...f, tarifHeure: e.target.value }))}
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '14px', outline: 'none', color: 'var(--texte)' }}
-              onFocus={e => e.target.style.borderColor = 'var(--foret)'}
-              onBlur={e => e.target.style.borderColor = 'var(--bord)'}
-            />
-          </div>
+        <div className="note-douce">
+          La commission de 10 % est calculée par AdiaraAcademy au moment du paiement. Les séances avec des élèves mineurs nécessitent la validation préalable du compte parent rattaché.
+        </div>
 
-          {/* Note légale */}
-          <div style={{ padding: '12px 14px', background: 'var(--sable)', borderRadius: 'var(--r-md)', fontSize: '12px', color: 'var(--texte-3)', lineHeight: '1.6', marginBottom: '1.25rem' }}>
-            La commission de 10% est calculée exclusivement par AdiaraAcademy au moment du paiement.
-            Les séances avec des élèves mineurs nécessitent la validation préalable du compte parent rattaché.
-          </div>
-
-          {erreur && <div style={{ background: '#FEE2E2', color: 'var(--erreur)', padding: '10px 14px', borderRadius: 'var(--r-md)', fontSize: '13px', marginBottom: '1rem' }}>{erreur}</div>}
-
-          <button type="submit" disabled={chargement}
-            style={{ width: '100%', padding: '13px', background: chargement ? 'var(--bord)' : 'var(--terre)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontSize: '15px', fontWeight: '700', cursor: chargement ? 'not-allowed' : 'pointer' }}>
-            {chargement ? 'Envoi en cours...' : 'Soumettre ma candidature'}
-          </button>
-        </form>
-      </div>
+        {erreur && <div className="ia-erreur" role="alert">{erreur}</div>}
+        <button type="submit" disabled={chargement} className="btn btn-foret">{chargement ? 'Envoi…' : 'Envoyer ma candidature'}</button>
+      </form>
     </div>
   )
 }

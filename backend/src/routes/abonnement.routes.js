@@ -2,11 +2,11 @@ const express = require('express')
 const prisma = require('../prisma')
 const { authentifier, autoriser } = require('../middleware/auth.middleware')
 const { envoyerEmail, emailBienvenuePremi } = require('../helpers/email')
+const { calculerPrix, enregistrerCommission } = require('../helpers/promo')
 
 const router = express.Router()
 
 const DUREE_JOURS  = 30
-const MONTANT_FCFA = 2900
 
 function genererReference() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -81,6 +81,9 @@ router.post('/initier', authentifier, async (req, res) => {
       data: { statut: 'ANNULE' }
     })
 
+    const prix = await calculerPrix(req.utilisateur.id)
+    const MONTANT_FCFA = prix.montant
+
     const reference = genererReference()
     const abonnement = await prisma.abonnement.create({
       data: {
@@ -106,7 +109,7 @@ router.post('/initier', authentifier, async (req, res) => {
           message: `Envoyez ${MONTANT_FCFA} FCFA via Wave. Objet : ${reference}`
         }
 
-    res.json({ reference, abonnementId: abonnement.id, instructions, montant: MONTANT_FCFA })
+    res.json({ reference, abonnementId: abonnement.id, instructions, montant: MONTANT_FCFA, montantInitial: prix.montantInitial, reductionPct: prix.reductionPct })
   } catch (err) { res.status(500).json({ message: 'Erreur', detail: err.message }) }
 })
 
@@ -124,6 +127,7 @@ router.post('/confirmer-test', authentifier, async (req, res) => {
       return res.status(400).json({ message: 'Abonnement déjà traité.' })
 
     const dateFin = await activerPremium(req.utilisateur.id, abonnement.id)
+    await enregistrerCommission(abonnement.id).catch(() => {})
 
     const user = await prisma.utilisateur.findUnique({
       where: { id: req.utilisateur.id },
@@ -151,6 +155,7 @@ router.post('/webhook', express.raw({ type: '*/*' }), async (req, res) => {
       return res.status(404).json({ message: 'Abonnement introuvable ou déjà traité' })
 
     const dateFin = await activerPremium(abonnement.utilisateurId, abonnement.id)
+    await enregistrerCommission(abonnement.id).catch(() => {})
 
     const user = await prisma.utilisateur.findUnique({
       where: { id: abonnement.utilisateurId },

@@ -111,7 +111,7 @@ hors-ligne remonte son score au retour de connexion.
 - Tables `etablissements`, `classes`, `eleves_classes`.
 - Dashboards prof (contenu), parent, établissement.
 - Intégration IA : résumé automatique de chapitre + parcours personnalisé
-  (API Anthropic Claude, clé `ANTHROPIC_API_KEY`, feature réservée Premium
+  (API DeepSeek, clé `DEEPSEEK_API_KEY`, feature réservée Premium
   — vérification backend).
 - Déploiement frontend (Vercel) + backend/BDD (Railway).
 

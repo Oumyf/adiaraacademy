@@ -53,6 +53,11 @@ enum StatutAbonnement {
   ANNULE
 }
 
+enum StatutCommission {
+  A_PAYER
+  PAYEE
+}
+
 enum MethodePaiement {
   ORANGE_MONEY
   WAVE
@@ -82,6 +87,9 @@ model Utilisateur {
   parents          LienParentEnfant[] @relation("EnfantLinks")
   profilProf       ProfilProfesseur?
   abonnements      Abonnement[]
+  codePromoUtiliseId String?
+  codePromoUtilise   CodePromo?       @relation("ParrainesParCode", fields: [codePromoUtiliseId], references: [id])
+  codePromoPossede   CodePromo?       @relation("CodeDuPartenaire")
 
   @@map("utilisateurs")
 }
@@ -253,4 +261,35 @@ model BadgeUtilisateur {
 
   @@unique([utilisateurId, badgeId])
   @@map("badges_utilisateurs")
+}
+
+model CodePromo {
+  id             String         @id @default(uuid())
+  code           String         @unique
+  proprietaireId String         @unique
+  proprietaire   Utilisateur    @relation("CodeDuPartenaire", fields: [proprietaireId], references: [id])
+  reductionPct   Int            @default(20)
+  commissionPct  Int            @default(20)
+  actif          Boolean        @default(true)
+  creeLe         DateTime       @default(now())
+  parraines      Utilisateur[]  @relation("ParrainesParCode")
+  commissions    Commission[]
+
+  @@map("codes_promo")
+}
+
+model Commission {
+  id                   String               @id @default(uuid())
+  codePromoId          String
+  codePromo            CodePromo            @relation(fields: [codePromoId], references: [id])
+  abonnementId         String               @unique
+  eleveId              String
+  montantBase          Int
+  montant              Int
+  referenceTransaction String?
+  statut               StatutCommission     @default(A_PAYER)
+  payeeLe              DateTime?
+  creeLe               DateTime             @default(now())
+
+  @@map("commissions")
 }

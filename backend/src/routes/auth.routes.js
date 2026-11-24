@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken')
 const { body, validationResult } = require('express-validator')
 const prisma = require('../prisma')
 const { verifierEtAttribuerBadges } = require('../helpers/badges')
+const { rattacherCode } = require('../helpers/promo')
 
 const router = express.Router()
 
@@ -40,7 +41,7 @@ router.post('/inscription', [
 ], async (req, res) => {
   const erreurs = validationResult(req)
   if (!erreurs.isEmpty()) return res.status(400).json({ erreurs: erreurs.array() })
-  const { nom, prenom, email, motDePasse, role, niveau, classe, ecole } = req.body
+  const { nom, prenom, email, motDePasse, role, niveau, classe, ecole, codePromo } = req.body
 
   const roleValide = ['ELEVE', 'PARENT'].includes(role) ? role : 'ELEVE'
   const niveauFinal = roleValide === 'PARENT' ? 'LYCEE' : (niveau || 'LYCEE')
@@ -57,7 +58,12 @@ router.post('/inscription', [
       data: { nom, prenom, email, motDePasse: hash, role: roleValide, niveau: niveauFinal, classe, ecole, streak: 1, derniereActivite: new Date() },
       select: { id: true, nom: true, prenom: true, email: true, role: true, niveau: true, xpTotal: true, streak: true, estPremium: true }
     })
-    res.status(201).json({ token: genererToken(utilisateur), utilisateur })
+    let promo = null
+    if (codePromo && String(codePromo).trim()) {
+      const r = await rattacherCode(utilisateur.id, codePromo)
+      promo = r.ok ? { appliquee: true, reductionPct: r.code.reductionPct } : { appliquee: false, message: r.message }
+    }
+    res.status(201).json({ token: genererToken(utilisateur), utilisateur, promo })
   } catch (err) {
     res.status(500).json({ message: "Erreur lors de l'inscription", detail: err.message })
   }

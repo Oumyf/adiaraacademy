@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import Icone from '../components/Icones'
+import { Revele } from '../components/Animations'
+
+const LABEL_M = { MATHEMATIQUES: 'Mathématiques', PHYSIQUE: 'Physique', CHIMIE: 'Chimie', SCIENCES_VIE_TERRE: 'SVT', INFORMATIQUE: 'Informatique' }
+const LABEL_N = { COLLEGE: 'Collège', LYCEE: 'Lycée', UNIVERSITE: 'Université' }
+const STYLE_M = { MATHEMATIQUES: 'm-maths', PHYSIQUE: 'm-phys', CHIMIE: 'm-chim', SCIENCES_VIE_TERRE: 'm-svt', INFORMATIQUE: 'm-info' }
 
 export default function CoursDetail() {
   const { id } = useParams()
@@ -17,7 +23,7 @@ export default function CoursDetail() {
   const estGestionnaire = utilisateur && (utilisateur.role === 'PROFESSEUR' || utilisateur.role === 'ADMIN')
 
   useEffect(() => {
-    api.get(`/cours/${id}`).then(r => setCours(r.data)).finally(() => setChargement(false))
+    api.get(`/cours/${id}`).then(r => setCours(r.data)).catch(() => setCours(null)).finally(() => setChargement(false))
   }, [id])
 
   const basculerPublication = async () => {
@@ -25,132 +31,107 @@ export default function CoursDetail() {
     try {
       const { data } = await api.patch(`/cours/${id}/publier`)
       setCours(c => ({ ...c, publie: data.publie }))
-    } finally {
-      setPublication(false)
-    }
+    } finally { setPublication(false) }
   }
 
   const supprimerCours = async () => {
-    setSuppressionEnCours(true)
-    setErreurSupp('')
-    try {
-      await api.delete(`/cours/${id}`)
-      navigate('/cours')
-    } catch {
-      setErreurSupp('Erreur lors de la suppression.')
-      setSuppressionEnCours(false)
-    }
+    setSuppressionEnCours(true); setErreurSupp('')
+    try { await api.delete(`/cours/${id}`); navigate('/cours') }
+    catch { setErreurSupp('La suppression a échoué. Réessaie.'); setSuppressionEnCours(false) }
   }
 
-  if (chargement) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--texte-3)' }}>Chargement...</div>
-  if (!cours) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--erreur)' }}>Cours introuvable.</div>
+  if (chargement) return <div className="vide"><div className="squelette" style={{ width: 280, height: 18, borderRadius: 9 }} /></div>
+  if (!cours) return (
+    <div className="vide">
+      <Icone nom="livre" taille={38} />
+      <h2>Cours introuvable</h2>
+      <p>Ce cours n'existe pas ou n'est pas encore publié.</p>
+      <Link to="/cours" className="btn btn-foret">Voir tous les cours</Link>
+    </div>
+  )
+
+  const nbChap = cours.chapitres?.length ?? 0
+  const xpTotal = (cours.chapitres || []).reduce((t, c) => t + (c.xpObtenu || 0), 0)
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
-      <Link to="/cours" style={{ fontSize: '13px', color: 'var(--texte-3)', display: 'inline-block', marginBottom: '1.5rem' }}>← Retour aux cours</Link>
-
-      {/* Bannière non publié */}
-      {estGestionnaire && !cours.publie && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFFBEB', border: '1px solid #F6E05E', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: '1.5rem', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '13px', color: '#92400E', fontWeight: '500' }}>
-            ⚠️ Ce cours n'est pas encore publié — seuls toi et les admins peuvent le voir.
-          </span>
-          <button onClick={basculerPublication} disabled={publication} style={{ flexShrink: 0, padding: '7px 16px', background: 'var(--foret)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-            {publication ? '...' : 'Publier'}
-          </button>
+    <div>
+      <div className={`cours-entete ${STYLE_M[cours.matiere] || 'm-maths'}`}>
+        <div className="cours-entete-int">
+          <Link to="/cours" className="lien-retour"><Icone nom="retour" taille={16} /> Tous les cours</Link>
+          <h1>{cours.titre}</h1>
+          {cours.description && <p>{cours.description}</p>}
+          <div className="cours-entete-meta">
+            <span>{LABEL_M[cours.matiere]}</span>
+            <span>{LABEL_N[cours.niveau]}</span>
+            {cours.classe && <span>{cours.classe}</span>}
+            <span>{nbChap} chapitre{nbChap > 1 ? 's' : ''}</span>
+            {xpTotal > 0 && <span>jusqu'à {xpTotal} XP</span>}
+            {cours.premium && <span className="meta-premium"><Icone nom="etoile" taille={12} /> Premium</span>}
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* En-tête cours */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '2.2rem', fontWeight: '400', margin: 0 }}>{cours.titre}</h1>
+      <div style={{ maxWidth: 820, margin: '0 auto', padding: '1.8rem 1.25rem 4rem' }}>
+        {estGestionnaire && !cours.publie && (
+          <div className="bandeau-brouillon" role="status">
+            <Icone nom="alerte" taille={20} />
+            <span><strong>Brouillon.</strong> Seuls toi et les administrateurs voient ce cours. Relis chaque chapitre avant de le publier.</span>
+            <button className="btn btn-foret" style={{ padding: '9px 18px', fontSize: 13.5 }} onClick={basculerPublication} disabled={publication}>
+              {publication ? 'Publication…' : 'Publier le cours'}
+            </button>
+          </div>
+        )}
+
         {estGestionnaire && (
-          <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
-            <Link to={`/cours/${id}/modifier`} style={{ padding: '6px 14px', background: 'transparent', color: 'var(--texte-2)', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '12px', fontWeight: '500' }}>
-              Modifier
-            </Link>
-            {cours.publie && (
-              <button onClick={basculerPublication} disabled={publication} style={{ padding: '6px 14px', background: 'transparent', color: 'var(--texte-3)', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '12px', cursor: 'pointer' }}>
-                {publication ? '...' : 'Dépublier'}
-              </button>
-            )}
-
-            {/* Confirmation suppression inline */}
+          <div className="actions-gestion">
+            <Link to={`/cours/${id}/modifier`} className="btn btn-doux"><Icone nom="crayon" taille={16} /> Modifier</Link>
+            {cours.publie && <button className="btn btn-doux" onClick={basculerPublication} disabled={publication}>{publication ? '…' : 'Dépublier'}</button>}
             {confirmerSupp ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--erreur)', fontWeight: '500', whiteSpace: 'nowrap' }}>Supprimer ?</span>
-                <button onClick={() => { setConfirmerSupp(false); setErreurSupp('') }} style={{ padding: '6px 10px', background: 'transparent', color: 'var(--texte-2)', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '12px', cursor: 'pointer' }}>
-                  Annuler
-                </button>
-                <button onClick={supprimerCours} disabled={suppressionEnCours} style={{ padding: '6px 10px', background: 'var(--erreur)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontSize: '12px', cursor: suppressionEnCours ? 'not-allowed' : 'pointer' }}>
-                  {suppressionEnCours ? '...' : 'Oui'}
-                </button>
-              </div>
+              <span className="confirmer-supp">
+                <span>Supprimer ce cours ?</span>
+                <button className="btn btn-doux" onClick={() => { setConfirmerSupp(false); setErreurSupp('') }}>Annuler</button>
+                <button className="btn btn-danger" onClick={supprimerCours} disabled={suppressionEnCours}>{suppressionEnCours ? '…' : 'Oui, supprimer'}</button>
+              </span>
             ) : (
-              <button onClick={() => setConfirmerSupp(true)} style={{ padding: '6px 14px', background: 'transparent', color: 'var(--erreur)', border: '1px solid var(--erreur)', borderRadius: 'var(--r-md)', fontSize: '12px', cursor: 'pointer' }}>
-                Supprimer
-              </button>
+              <button className="btn btn-doux texte-danger" onClick={() => setConfirmerSupp(true)}>Supprimer</button>
             )}
           </div>
         )}
-      </div>
+        {erreurSupp && <div className="ia-erreur" role="alert" style={{ marginBottom: 14 }}>{erreurSupp}</div>}
 
-      {erreurSupp && (
-        <div style={{ padding: '10px 14px', background: '#FFF5F5', border: '1px solid #FEB2B2', borderRadius: 'var(--r-md)', color: 'var(--erreur)', fontSize: '13px', marginBottom: '1rem' }}>{erreurSupp}</div>
-      )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.4rem 0 1rem', gap: 12 }}>
+          <h2 className="titre-liste">Au programme</h2>
+          {estGestionnaire && <Link to={`/cours/${id}/creer-chapitre`} className="btn btn-foret" style={{ padding: '9px 16px', fontSize: 13.5 }}><Icone nom="plus" taille={16} /> Chapitre</Link>}
+        </div>
 
-      {cours.description && (
-        <p style={{ color: 'var(--texte-2)', fontSize: '15px', marginBottom: '2rem', lineHeight: '1.6' }}>{cours.description}</p>
-      )}
-
-      {/* En-tête chapitres + bouton ajout */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', margin: 0 }}>
-          Chapitres ({cours.chapitres?.length ?? 0})
-        </h2>
-        {estGestionnaire && (
-          <Link to={`/cours/${id}/creer-chapitre`} style={{ padding: '7px 14px', background: 'var(--foret)', color: '#fff', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: '600', textDecoration: 'none' }}>
-            + Chapitre
-          </Link>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-        {cours.chapitres?.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--texte-3)', fontSize: '14px', background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-lg)' }}>
-            Aucun chapitre pour l'instant.
+        {nbChap === 0 && (
+          <div className="vide" style={{ padding: '2.5rem 1rem' }}>
+            <Icone nom="livre" taille={34} />
+            <h2>Aucun chapitre pour l'instant</h2>
+            {estGestionnaire && <p>Ajoute le premier chapitre pour que les élèves puissent commencer.</p>}
           </div>
         )}
-        {cours.chapitres?.map((ch, i) => (
-          <div key={ch.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--blanc)', borderRadius: i === 0 ? 'var(--r-lg) var(--r-lg) 0 0' : i === cours.chapitres.length - 1 ? '0 0 var(--r-lg) var(--r-lg)' : '0', border: '1px solid var(--bord)', borderTop: i > 0 ? 'none' : '1px solid var(--bord)' }}>
-            <Link to={`/chapitres/${ch.id}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--foret-pale)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontFamily: 'var(--serif)', fontSize: '1.3rem', color: 'var(--foret)', opacity: '.4', width: '32px', textAlign: 'right' }}>{String(i + 1).padStart(2, '0')}</span>
-                <div>
-                  <div style={{ fontWeight: '500', color: 'var(--texte)', fontSize: '14px' }}>{ch.titre}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>{ch._count?.quiz || 0} quiz · +{ch.xpObtenu} XP</div>
+
+        <div className="chapitres-liste">
+          {cours.chapitres?.map((ch, i) => (
+            <Revele key={ch.id} delai={Math.min(i, 8) * 60} className="chapitre-ligne">
+              <Link to={`/chapitres/${ch.id}`} className="chapitre-lien">
+                <span className="chapitre-num">{i + 1}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="chapitre-titre">{ch.titre}</span>
+                  <span className="chapitre-info">{ch._count?.quiz || 0} quiz · +{ch.xpObtenu} XP</span>
+                </span>
+                <Icone nom="fleche" taille={18} className="chapitre-fleche" />
+              </Link>
+              {estGestionnaire && (
+                <div className="chapitre-actions">
+                  <Link to={`/chapitres/${ch.id}/modifier`} aria-label={`Modifier le chapitre ${i + 1}`} title="Modifier"><Icone nom="crayon" taille={16} /></Link>
+                  <Link to={`/chapitres/${ch.id}/creer-quiz`} title="Ajouter un quiz"><Icone nom="plus" taille={14} /> Quiz</Link>
                 </div>
-              </div>
-              <span style={{ color: 'var(--texte-3)' }}>→</span>
-            </Link>
-            {estGestionnaire && (
-              <div style={{ display: 'flex', borderLeft: '1px solid var(--bord)' }}>
-                <Link to={`/chapitres/${ch.id}/modifier`} style={{ padding: '0 12px', fontSize: '12px', color: 'var(--texte-3)', textDecoration: 'none', height: '100%', display: 'flex', alignItems: 'center' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--foret)'; e.currentTarget.style.background = 'var(--foret-pale)' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--texte-3)'; e.currentTarget.style.background = 'transparent' }}
-                  aria-label="Modifier le chapitre"
-                >✏️</Link>
-                <Link to={`/chapitres/${ch.id}/creer-quiz`} style={{ padding: '0 12px', fontSize: '12px', color: 'var(--texte-3)', textDecoration: 'none', borderLeft: '1px solid var(--bord)', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--foret)'; e.currentTarget.style.background = 'var(--foret-pale)' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--texte-3)'; e.currentTarget.style.background = 'transparent' }}
-                >+ Quiz</Link>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </Revele>
+          ))}
+        </div>
       </div>
     </div>
   )

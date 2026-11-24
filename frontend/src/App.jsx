@@ -24,6 +24,9 @@ const ParentDashboard  = lazy(() => import("./pages/ParentDashboard"))
 const Tuteurs          = lazy(() => import("./pages/Tuteurs"))
 const TuteurProfil     = lazy(() => import("./pages/TuteurProfil"))
 const DevenirProf      = lazy(() => import("./pages/DevenirProf"))
+const GenererCours     = lazy(() => import("./pages/GenererCours"))
+const Ambassadeur      = lazy(() => import("./pages/Ambassadeur"))
+const AdminAmbassadeurs = lazy(() => import("./pages/AdminAmbassadeurs"))
 
 const Chargement = () => (
   <div style={{ display: "flex", justifyContent: "center", padding: "4rem", color: "var(--texte-3)" }}>
@@ -43,6 +46,14 @@ function RouteParent({ children }) {
   if (!utilisateur) return <Navigate to="/connexion" replace />
   if (utilisateur.role !== "PARENT" && utilisateur.role !== "ADMIN")
     return <Navigate to="/dashboard" replace />
+  return children
+}
+
+function RouteAdmin({ children }) {
+  const { utilisateur, chargement } = useAuth()
+  if (chargement) return <Chargement />
+  if (!utilisateur) return <Navigate to="/connexion" replace />
+  if (utilisateur.role !== "ADMIN") return <Navigate to="/" replace />
   return children
 }
 
@@ -77,7 +88,10 @@ export default function App() {
           <Route path="chapitres/:id" element={<RoutePrivee><ChapitreDetail /></RoutePrivee>} />
           <Route path="quiz/:id"      element={<RoutePrivee><QuizPage /></RoutePrivee>} />
 
+          <Route path="ambassadeur"                  element={<RoutePrivee><Ambassadeur /></RoutePrivee>} />
+          <Route path="admin/ambassadeurs"           element={<RouteAdmin><AdminAmbassadeurs /></RouteAdmin>} />
           <Route path="creer-cours"                  element={<RouteProf><CreerCours /></RouteProf>} />
+          <Route path="generer-cours"                element={<RouteProf><GenererCours /></RouteProf>} />
           <Route path="cours/:id/creer-chapitre"     element={<RouteProf><CreerChapitre /></RouteProf>} />
           <Route path="cours/:id/modifier"           element={<RouteProf><EditCours /></RouteProf>} />
           <Route path="chapitres/:id/creer-quiz"     element={<RouteProf><CreerQuiz /></RouteProf>} />

@@ -2,91 +2,60 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
+import Icone from '../components/Icones'
+import { Revele } from '../components/Animations'
 
 const PLANS = [
   {
-    id: 'gratuit',
-    nom: 'Gratuit',
-    prix: '0',
-    unite: 'FCFA / mois',
-    badge: null,
+    id: 'gratuit', nom: 'Gratuit', prix: '0', unite: 'FCFA par mois',
     description: 'Pour découvrir la plateforme',
-    fonctionnalites: [
-      'Cours de Mathématiques complets',
-      'Cours de Chimie complets',
-      'Quiz interactifs',
-      'Suivi de progression',
-      'Classement général',
-      'Badges de récompense',
-    ],
-    blockes: ['Cours de Physique', 'Cours de SVT', 'Mode Révision Express', 'Parcours IA'],
-    cta: null,
+    ok: ['Cours de Mathématiques et de Chimie', 'Quiz avec correction immédiate', 'Quiz qui s\'adaptent à ton niveau', 'Explications de l\'IA : 5 par jour', 'Classement, badges et séries'],
+    non: ['Cours de Physique et de SVT', 'Révision express'],
   },
   {
-    id: 'premium',
-    nom: 'Premium',
-    prix: '2 900',
-    unite: 'FCFA / mois',
-    badge: '⭐ RECOMMANDÉ',
-    description: 'Accès complet à toute la plateforme',
-    fonctionnalites: [
-      'Tout du plan Gratuit',
-      'Cours de Physique débloqués',
-      'Cours de SVT débloqués',
-      'Mode Révision Express (5 min / 10 questions)',
-      'Parcours personnalisé IA (bientôt)',
-      'Support prioritaire',
-    ],
-    blockes: [],
-    cta: 'Passer à Premium',
+    id: 'premium', nom: 'Premium', prix: '2 900', unite: 'FCFA par mois', badge: 'Le plus choisi',
+    description: 'Tout débloqué, sans limite de cours',
+    ok: ['Tout du plan Gratuit', 'Cours de Physique et de SVT', 'Révision express (10 questions, 5 minutes)', 'Explications de l\'IA : 60 par jour', 'Sans engagement, résiliable à tout moment'],
+    non: [],
   },
   {
-    id: 'etablissement',
-    nom: 'Établissement',
-    prix: 'Sur devis',
-    unite: '',
-    badge: '🏫 B2B',
+    id: 'etablissement', nom: 'Établissement', prix: 'Sur devis', unite: '',
     description: 'Pour collèges, lycées et universités',
-    fonctionnalites: [
-      'Tout du plan Premium',
-      'Tableau de bord professeur',
-      'Statistiques par classe',
-      "Jusqu'à 500 élèves",
-      'Contenu personnalisé par établissement',
-      'Facturation mensuelle ou annuelle',
-    ],
-    blockes: [],
-    cta: 'Nous contacter',
+    ok: ['Tout du plan Premium', 'Tableau de bord professeur', 'Statistiques par classe', 'Jusqu\'à 500 élèves', 'Contenu adapté à ton établissement'],
+    non: [],
   },
+]
+
+const FAQ = [
+  ['Comment fonctionne le code promo d\'un professeur ?', 'Si un professeur t\'a donné son code, saisis-le à l\'inscription ou avant ton premier paiement. Tu paies moins cher sur tes premiers mois Premium, et ton professeur reçoit une petite commission. Cela ne change rien à ton accès.'],
+  ['Comment je paie ?', 'Avec Orange Money ou Wave, depuis ton téléphone. Pas besoin de carte bancaire.'],
+  ['Puis-je arrêter quand je veux ?', 'Oui. L\'abonnement dure 30 jours et ne se renouvelle pas tout seul : tu décides de le reprendre ou non.'],
+  ['Mes parents peuvent-ils payer ?', 'Oui. Un parent peut payer depuis son propre téléphone avec la référence affichée à la fin du paiement.'],
+  ['Que se passe-t-il si mon paiement ne passe pas ?', 'Écris-nous à contact@adiaraacademy.sn avec ta référence. On vérifie et on active ton compte.'],
 ]
 
 const ETAPES = { CHOIX: 'choix', METHODE: 'methode', INSTRUCTIONS: 'instructions', SUCCES: 'succes' }
 
 const LogoOrangeMoney = () => (
-  <svg width="48" height="48" viewBox="0 0 48 48" aria-label="Orange Money">
-    <rect width="48" height="48" rx="12" fill="#FF6600"/>
-    <rect x="8" y="8" width="32" height="32" rx="7" fill="white" opacity="0.12"/>
-    {/* Cercle Orange */}
-    <circle cx="24" cy="18" r="7" fill="white" opacity="0.9"/>
-    <circle cx="24" cy="18" r="4.5" fill="#FF6600"/>
-    <text x="24" y="34" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="8" letterSpacing="0.5">MONEY</text>
-  </svg>
+  <div style={{ width: 84, height: 48, borderRadius: 12, background: '#fff', border: '1px solid #E8E2D3', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 6, flexShrink: 0 }}>
+    <img src="/logos/orange-money.png" alt="Orange Money" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+  </div>
 )
 
 const LogoWave = () => (
-  <svg width="48" height="48" viewBox="0 0 48 48" aria-label="Wave">
-    <rect width="48" height="48" rx="12" fill="#1D62ED"/>
-    {/* W stylisé en vague */}
-    <path d="M9 26 C13 18 17 34 21 24 C25 14 29 30 33 22 L36 16" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-    <text x="24" y="41" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="8" letterSpacing="1">WAVE</text>
-  </svg>
+  <img src="/logos/wave.png" alt="Wave" width="48" height="48" style={{ borderRadius: '50%', flexShrink: 0, display: 'block' }} />
 )
 
 function Modal({ onFermer, children }) {
+  useEffect(() => {
+    const f = e => { if (e.key === 'Escape') onFermer() }
+    window.addEventListener('keydown', f)
+    return () => window.removeEventListener('keydown', f)
+  }, [onFermer])
   return (
-    <div onClick={onFermer} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--blanc)', borderRadius: 'var(--r-xl)', padding: '2rem', maxWidth: '440px', width: '100%', boxShadow: 'var(--ombre-lg)', position: 'relative' }}>
-        <button onClick={onFermer} aria-label="Fermer" style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '18px', color: 'var(--texte-3)', cursor: 'pointer' }}>✕</button>
+    <div className="modal-fond" onClick={onFermer}>
+      <div className="modal-boite" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+        <button className="modal-fermer" onClick={onFermer} aria-label="Fermer"><Icone nom="fermer" taille={20} /></button>
         {children}
       </div>
     </div>
@@ -96,60 +65,60 @@ function Modal({ onFermer, children }) {
 export default function Tarifs() {
   const { utilisateur, mettreAJourUtilisateur } = useAuth()
   const navigate = useNavigate()
-  const [abonnement, setAbonnement]     = useState(null)
-  const [etape, setEtape]               = useState(ETAPES.CHOIX)
-  const [methode, setMethode]           = useState(null)
+  const [abonnement, setAbonnement] = useState(null)
+  const [etape, setEtape] = useState(ETAPES.CHOIX)
+  const [methode, setMethode] = useState(null)
   const [instructions, setInstructions] = useState(null)
-  const [reference, setReference]       = useState(null)
-  const [chargement, setChargement]     = useState(false)
-  const [erreur, setErreur]             = useState(null)
+  const [reference, setReference] = useState(null)
+  const [chargement, setChargement] = useState(false)
+  const [erreur, setErreur] = useState(null)
   const [modalOuverte, setModalOuverte] = useState(false)
+  const [prix, setPrix] = useState({ montant: 2900, montantInitial: 2900, reductionPct: 0, code: null })
+  const [codeSaisi, setCodeSaisi] = useState('')
+  const [erreurCode, setErreurCode] = useState(null)
+  const fcfa = n => n.toLocaleString('fr-FR')
 
   useEffect(() => {
-    if (utilisateur) {
-      api.get('/abonnements/statut')
-        .then(r => setAbonnement(r.data.abonnement))
-        .catch(() => {})
-    }
+    if (utilisateur) api.get('/abonnements/statut').then(r => setAbonnement(r.data.abonnement)).catch(() => {})
   }, [utilisateur])
 
   const ouvrirModal = () => {
     if (!utilisateur) { navigate('/inscription'); return }
     if (utilisateur.estPremium) return
-    setEtape(ETAPES.METHODE)
-    setErreur(null)
-    setModalOuverte(true)
+    setEtape(ETAPES.METHODE); setErreur(null); setErreurCode(null); setModalOuverte(true)
+    api.get('/promo/prix').then(r => setPrix(r.data)).catch(() => {})
   }
 
-  const initierPaiement = async (methodePaiement) => {
-    setMethode(methodePaiement)
-    setChargement(true)
-    setErreur(null)
+  const appliquerCode = async () => {
+    setErreurCode(null)
     try {
-      const r = await api.post('/abonnements/initier', { methodePaiement })
-      setReference(r.data.reference)
-      setInstructions(r.data.instructions)
-      setEtape(ETAPES.INSTRUCTIONS)
+      const r = await api.post('/promo/appliquer', { code: codeSaisi })
+      setPrix(r.data.prix); setCodeSaisi('')
     } catch (e) {
-      setErreur(e.response?.data?.message || 'Une erreur est survenue.')
-    } finally {
-      setChargement(false)
+      setErreurCode(e.response?.data?.message || 'Le code n\'a pas pu être appliqué.')
     }
   }
 
+  const initierPaiement = async (methodePaiement) => {
+    setMethode(methodePaiement); setChargement(true); setErreur(null)
+    try {
+      const r = await api.post('/abonnements/initier', { methodePaiement })
+      setReference(r.data.reference); setInstructions(r.data.instructions); setEtape(ETAPES.INSTRUCTIONS)
+    } catch (e) {
+      setErreur(e.response?.data?.message || 'Le paiement n\'a pas pu démarrer. Réessaie dans un instant.')
+    } finally { setChargement(false) }
+  }
+
   const confirmerTest = async () => {
-    setChargement(true)
-    setErreur(null)
+    setChargement(true); setErreur(null)
     try {
       const r = await api.post('/abonnements/confirmer-test', { reference })
       mettreAJourUtilisateur({ estPremium: true })
       setAbonnement({ dateFin: r.data.dateFin, methodePaiement: methode, joursRestants: 30 })
       setEtape(ETAPES.SUCCES)
     } catch (e) {
-      setErreur(e.response?.data?.message || 'Erreur lors de la confirmation.')
-    } finally {
-      setChargement(false)
-    }
+      setErreur(e.response?.data?.message || 'La confirmation a échoué. Réessaie ou écris-nous avec ta référence.')
+    } finally { setChargement(false) }
   }
 
   const fermerModal = () => {
@@ -158,210 +127,139 @@ export default function Tarifs() {
   }
 
   const planActuel = utilisateur?.estPremium ? 'premium' : 'gratuit'
-  const dateFin = abonnement?.dateFin
-    ? new Date(abonnement.dateFin).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
-    : null
+  const dateFin = abonnement?.dateFin ? new Date(abonnement.dateFin).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : null
 
   return (
-    <div className="page-container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '3rem 1.5rem' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ fontFamily: 'var(--serif)', fontSize: '2.2rem', fontWeight: '400', marginBottom: '0.75rem' }}>
-          Choisissez votre plan
-        </h1>
-        <p style={{ color: 'var(--texte-2)', fontSize: '15px', maxWidth: '520px', margin: '0 auto', lineHeight: '1.6' }}>
-          AdiaraAcademy propose des cours de qualité pour tous les élèves sénégalais, du collège à l'université.
-        </p>
-      </div>
-
-      {/* Bandeau abonnement actif */}
-      {utilisateur?.estPremium && abonnement && (
-        <div style={{ background: 'var(--foret-pale)', border: '1px solid var(--foret)', borderRadius: 'var(--r-lg)', padding: '1rem 1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ color: 'var(--foret)', fontWeight: '600', fontSize: '14px' }}>
-            ✓ Abonnement Premium actif
-            {dateFin && <span style={{ fontWeight: '400', color: 'var(--texte-2)', marginLeft: '8px' }}>— expire le {dateFin} ({abonnement.joursRestants} j. restants)</span>}
-          </div>
-          <Link to="/cours" style={{ fontSize: '13px', color: 'var(--foret)', fontWeight: '600' }}>Accéder aux cours →</Link>
+    <div>
+      <div className="entete-page">
+        <div className="entete-page-int" style={{ textAlign: 'center' }}>
+          <h1>Un abonnement simple, pour tous les élèves</h1>
+          <p style={{ margin: '12px auto 0' }}>Commence gratuitement. Passe à Premium quand tu veux débloquer toutes les matières.</p>
         </div>
-      )}
-
-      {/* Grille des plans */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', alignItems: 'start' }}>
-        {PLANS.map(plan => {
-          const estActuel  = planActuel === plan.id
-          const estPremium = plan.id === 'premium'
-          return (
-            <div key={plan.id} style={{ background: 'var(--blanc)', border: `2px solid ${estActuel ? 'var(--foret)' : estPremium ? 'var(--or)' : 'var(--bord)'}`, borderRadius: 'var(--r-xl)', overflow: 'hidden', boxShadow: estPremium ? 'var(--ombre-md)' : 'var(--ombre-sm)' }}>
-              {plan.badge && (
-                <div style={{ background: estPremium ? 'var(--or)' : 'var(--foret)', color: '#fff', fontSize: '10px', fontWeight: '800', padding: '6px 16px', textAlign: 'center', letterSpacing: '.5px' }}>
-                  {plan.badge}
-                </div>
-              )}
-              <div style={{ padding: '1.75rem 1.5rem' }}>
-                {estActuel && (
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--foret)', background: 'var(--foret-pale)', padding: '3px 10px', borderRadius: '999px', display: 'inline-block', marginBottom: '10px', letterSpacing: '.5px' }}>
-                    VOTRE PLAN ACTUEL
-                  </div>
-                )}
-                <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', marginBottom: '4px' }}>{plan.nom}</h2>
-                <p style={{ color: 'var(--texte-3)', fontSize: '13px', marginBottom: '1.25rem' }}>{plan.description}</p>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <span style={{ fontFamily: 'var(--serif)', fontSize: '2rem', color: 'var(--texte)' }}>{plan.prix}</span>
-                  {plan.unite && <span style={{ color: 'var(--texte-3)', fontSize: '13px', marginLeft: '6px' }}>{plan.unite}</span>}
-                </div>
-
-                {plan.id === 'gratuit' && (
-                  estActuel
-                    ? <div style={{ padding: '11px 0', textAlign: 'center', fontSize: '14px', color: 'var(--texte-3)', fontWeight: '500' }}>Plan actuel</div>
-                    : <Link to="/cours" style={{ display: 'block', padding: '11px', textAlign: 'center', background: 'var(--foret-pale)', color: 'var(--foret)', borderRadius: 'var(--r-md)', fontWeight: '600', fontSize: '14px', textDecoration: 'none' }}>Commencer gratuitement</Link>
-                )}
-
-                {plan.id === 'premium' && (
-                  utilisateur?.estPremium
-                    ? <div style={{ padding: '11px 0', textAlign: 'center', fontSize: '14px', color: 'var(--succes)', fontWeight: '600' }}>✓ Plan actuel</div>
-                    : <button onClick={ouvrirModal} style={{ width: '100%', padding: '12px', background: 'var(--or)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
-                        {plan.cta}
-                      </button>
-                )}
-
-                {plan.id === 'etablissement' && (
-                  <a href="mailto:contact@adiaraacademy.sn" style={{ display: 'block', padding: '11px', textAlign: 'center', background: 'var(--foret)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '600', fontSize: '14px', textDecoration: 'none' }}>
-                    {plan.cta}
-                  </a>
-                )}
-
-                <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {plan.fonctionnalites.map(f => (
-                    <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', color: 'var(--texte-2)' }}>
-                      <span style={{ color: 'var(--succes)', fontWeight: '700', flexShrink: 0 }}>✓</span>{f}
-                    </div>
-                  ))}
-                  {plan.blockes.map(f => (
-                    <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', color: 'var(--texte-3)' }}>
-                      <span style={{ flexShrink: 0 }}>✕</span>{f}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )
-        })}
       </div>
 
-      {/* Note légale */}
-      <div style={{ marginTop: '3rem', background: 'var(--foret-pale)', borderRadius: 'var(--r-xl)', padding: '1.5rem 2rem', border: '1px solid var(--bord)' }}>
-        <h3 style={{ fontFamily: 'var(--serif)', fontSize: '1.1rem', fontWeight: '400', color: 'var(--foret)', marginBottom: '0.5rem' }}>
-          Paiement mobile — Orange Money & Wave
-        </h3>
-        <p style={{ fontSize: '13px', color: 'var(--texte-2)', lineHeight: '1.6', margin: 0 }}>
-          Le paiement s'effectue via <strong>Orange Money</strong> ou <strong>Wave</strong>.
-          Après initiation, suivez les instructions affichées pour effectuer le virement.
-          Contactez-nous à <strong>contact@adiaraacademy.sn</strong> en cas de problème.
-        </p>
+      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
+        {utilisateur?.estPremium && abonnement && (
+          <div className="bandeau-actif">
+            <Icone nom="check" taille={20} />
+            <span><strong>Premium actif</strong>{dateFin && <> jusqu'au {dateFin} ({abonnement.joursRestants} jours restants)</>}</span>
+            <Link to="/cours" className="btn btn-foret" style={{ padding: '8px 16px', fontSize: 13.5 }}>Voir les cours</Link>
+          </div>
+        )}
+
+        <div className="plans-grille">
+          {PLANS.map((plan, i) => {
+            const estActuel = planActuel === plan.id
+            const vedette = plan.id === 'premium'
+            return (
+              <Revele key={plan.id} delai={i * 90} className={`plan ${vedette ? 'plan-vedette' : ''} ${estActuel ? 'plan-actuel' : ''}`}>
+                {plan.badge && <span className="plan-badge"><Icone nom="etoile" taille={13} /> {plan.badge}</span>}
+                {estActuel && <span className="plan-tag">Ton plan actuel</span>}
+                <h2>{plan.nom}</h2>
+                <p className="plan-desc">{plan.description}</p>
+                <div className="plan-prix"><b>{plan.prix}</b>{plan.unite && <small>{plan.unite}</small>}</div>
+
+                {plan.id === 'gratuit' && (estActuel
+                  ? <div className="plan-actuel-txt">Tu es sur ce plan</div>
+                  : <Link to="/cours" className="btn btn-doux plan-btn">Commencer gratuitement</Link>)}
+                {plan.id === 'premium' && (utilisateur?.estPremium
+                  ? <div className="plan-actuel-txt">Tu es sur ce plan</div>
+                  : <button onClick={ouvrirModal} className="btn btn-or plan-btn">Passer à Premium</button>)}
+                {plan.id === 'etablissement' && <a href="mailto:contact@adiaraacademy.sn" className="btn btn-foret plan-btn">Nous contacter</a>}
+
+                <ul className="plan-liste">
+                  {plan.ok.map(f => <li key={f}><Icone nom="check" taille={16} /> {f}</li>)}
+                  {plan.non.map(f => <li key={f} className="non"><Icone nom="croix" taille={16} /> {f}</li>)}
+                </ul>
+              </Revele>
+            )
+          })}
+        </div>
+
+        <div className="paiement-note">
+          <div className="paiement-logos"><LogoOrangeMoney /><LogoWave /></div>
+          <p>Le paiement se fait avec <strong>Orange Money</strong> ou <strong>Wave</strong>. Après avoir choisi ta méthode, tu reçois les instructions et une référence à indiquer.</p>
+        </div>
+
+        <h2 className="titre-liste" style={{ margin: '3rem 0 1rem' }}>Questions fréquentes</h2>
+        <div className="faq">
+          {FAQ.map(([q, r]) => (
+            <details key={q}>
+              <summary>{q}</summary>
+              <p>{r}</p>
+            </details>
+          ))}
+        </div>
       </div>
 
-      {/* ── Modal paiement ── */}
       {modalOuverte && (
         <Modal onFermer={fermerModal}>
-
-          {/* Étape 1 — Choix de la méthode */}
           {etape === ETAPES.METHODE && (
             <>
-              <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.5rem', fontWeight: '400', marginBottom: '0.5rem' }}>Passer à Premium</h2>
-              <p style={{ color: 'var(--texte-2)', fontSize: '13px', marginBottom: '1.75rem' }}>
-                2 900 FCFA / mois · Sans engagement
+              <h2 className="modal-titre">Passer à Premium</h2>
+              <p className="modal-sous">
+                {prix.reductionPct > 0
+                  ? <><s className="prix-barre">{fcfa(prix.montantInitial)}</s> <strong>{fcfa(prix.montant)} FCFA</strong> pour 30 jours (code {prix.code}, {prix.reductionPct} % de réduction).</>
+                  : <>{fcfa(prix.montant)} FCFA pour 30 jours, sans engagement.</>}
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <button onClick={() => initierPaiement('ORANGE_MONEY')} disabled={chargement}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', border: '2px solid #FF6600', borderRadius: 'var(--r-lg)', background: chargement ? 'var(--sable)' : '#FFF5EE', cursor: chargement ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'all .15s ease' }}
-                  onMouseEnter={e => { if (!chargement) e.currentTarget.style.background = '#FFE8D6' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = chargement ? 'var(--sable)' : '#FFF5EE' }}
-                >
+              {!prix.code && (
+                <div className="promo-saisie">
+                  <input type="text" placeholder="Code promo d'un professeur" value={codeSaisi} onChange={e => setCodeSaisi(e.target.value.toUpperCase())} aria-label="Code promo" />
+                  <button type="button" className="btn btn-doux" onClick={appliquerCode} disabled={!codeSaisi.trim()}>Appliquer</button>
+                </div>
+              )}
+              {erreurCode && <div className="ia-erreur" role="alert" style={{ marginBottom: 12 }}>{erreurCode}</div>}
+              <div style={{ display: 'grid', gap: 12 }}>
+                <button onClick={() => initierPaiement('ORANGE_MONEY')} disabled={chargement} className="methode methode-om">
                   <LogoOrangeMoney />
-                  <div>
-                    <div style={{ fontWeight: '800', fontSize: '15px', color: '#CC4400' }}>Orange Money</div>
-                    <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>Paiement mobile · *144#</div>
-                  </div>
+                  <span><b>Orange Money</b><small>Paiement mobile, code *144#</small></span>
                 </button>
-                <button onClick={() => initierPaiement('WAVE')} disabled={chargement}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', border: '2px solid #1D62ED', borderRadius: 'var(--r-lg)', background: chargement ? 'var(--sable)' : '#EEF5FF', cursor: chargement ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'all .15s ease' }}
-                  onMouseEnter={e => { if (!chargement) e.currentTarget.style.background = '#D6E4FF' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = chargement ? 'var(--sable)' : '#EEF5FF' }}
-                >
+                <button onClick={() => initierPaiement('WAVE')} disabled={chargement} className="methode methode-wave">
                   <LogoWave />
-                  <div>
-                    <div style={{ fontWeight: '800', fontSize: '15px', color: '#1445B0' }}>Wave</div>
-                    <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>Paiement mobile · App Wave</div>
-                  </div>
+                  <span><b>Wave</b><small>Paiement avec l'application Wave</small></span>
                 </button>
               </div>
-              {erreur && <div style={{ marginTop: '1rem', color: 'var(--erreur)', fontSize: '13px' }}>{erreur}</div>}
+              {erreur && <div className="ia-erreur" role="alert" style={{ marginTop: 14 }}>{erreur}</div>}
             </>
           )}
 
-          {/* Étape 2 — Instructions de paiement */}
           {etape === ETAPES.INSTRUCTIONS && instructions && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.2rem' }}>
                 {methode === 'ORANGE_MONEY' ? <LogoOrangeMoney /> : <LogoWave />}
                 <div>
-                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', margin: 0 }}>
-                    {methode === 'ORANGE_MONEY' ? 'Orange Money' : 'Wave'}
-                  </h2>
-                  <div style={{ fontSize: '12px', color: 'var(--texte-3)', marginTop: '2px' }}>2 900 FCFA · 30 jours</div>
+                  <h2 className="modal-titre" style={{ margin: 0 }}>{methode === 'ORANGE_MONEY' ? 'Orange Money' : 'Wave'}</h2>
+                  <div className="modal-sous" style={{ margin: 0 }}>{fcfa(prix.montant)} FCFA pour 30 jours</div>
                 </div>
               </div>
 
-              <div style={{ background: 'var(--sable)', borderRadius: 'var(--r-lg)', padding: '1.25rem', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--texte-3)', letterSpacing: '.5px', marginBottom: '8px' }}>INSTRUCTIONS</div>
-                <p style={{ fontSize: '14px', color: 'var(--texte)', lineHeight: '1.7', margin: 0 }}>
-                  {instructions.message}
-                </p>
-                {methode === 'ORANGE_MONEY' && instructions.ussd && (
-                  <div style={{ marginTop: '10px', fontFamily: 'monospace', fontSize: '15px', fontWeight: '700', color: '#CC4400', background: '#FFF5EE', padding: '8px 12px', borderRadius: 'var(--r-sm)' }}>
-                    {instructions.ussd}
-                  </div>
-                )}
+              <div className="bloc-instr">
+                <div className="bloc-instr-titre">Ce que tu dois faire</div>
+                <p>{instructions.message}</p>
+                {methode === 'ORANGE_MONEY' && instructions.ussd && <code>{instructions.ussd}</code>}
               </div>
 
-              <div style={{ background: 'var(--or-pale)', borderRadius: 'var(--r-lg)', padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.2rem' }}>🔖</span>
-                <div>
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--texte-3)', letterSpacing: '.5px' }}>RÉFÉRENCE À INDIQUER</div>
-                  <div style={{ fontFamily: 'monospace', fontSize: '18px', fontWeight: '800', color: 'var(--or)', letterSpacing: '2px', marginTop: '2px' }}>{reference}</div>
-                </div>
+              <div className="bloc-ref">
+                <div className="bloc-instr-titre">Référence à indiquer</div>
+                <b>{reference}</b>
               </div>
 
-              <p style={{ fontSize: '12px', color: 'var(--texte-3)', marginBottom: '1.25rem', lineHeight: '1.6' }}>
-                Après avoir effectué le paiement, cliquez sur le bouton ci-dessous pour activer votre compte.
-                <br/>En version bêta, l'activation est instantanée après confirmation.
-              </p>
+              <p className="modal-note">Une fois le paiement fait, appuie sur le bouton pour activer ton compte. En version bêta, l'activation est immédiate.</p>
 
-              <button onClick={confirmerTest} disabled={chargement}
-                style={{ width: '100%', padding: '13px', background: chargement ? 'var(--bord)' : 'var(--foret)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', cursor: chargement ? 'not-allowed' : 'pointer' }}>
-                {chargement ? 'Activation en cours…' : "J'ai effectué le paiement →"}
+              <button onClick={confirmerTest} disabled={chargement} className="btn btn-foret" style={{ width: '100%' }}>
+                {chargement ? 'Activation en cours…' : "J'ai fait le paiement"}
               </button>
-              {erreur && <div style={{ marginTop: '0.75rem', color: 'var(--erreur)', fontSize: '13px' }}>{erreur}</div>}
-              <button onClick={() => setEtape(ETAPES.METHODE)} style={{ marginTop: '10px', background: 'none', border: 'none', color: 'var(--texte-3)', fontSize: '13px', cursor: 'pointer', padding: 0 }}>
-                ← Changer de méthode
-              </button>
+              {erreur && <div className="ia-erreur" role="alert" style={{ marginTop: 12 }}>{erreur}</div>}
+              <button onClick={() => setEtape(ETAPES.METHODE)} className="lien-doux">Changer de méthode</button>
             </>
           )}
 
-          {/* Étape 3 — Succès */}
           {etape === ETAPES.SUCCES && (
-            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-              <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.6rem', fontWeight: '400', marginBottom: '0.75rem' }}>
-                Bienvenue dans Premium !
-              </h2>
-              <p style={{ color: 'var(--texte-2)', fontSize: '14px', lineHeight: '1.7', marginBottom: '1.5rem' }}>
-                Ton compte Premium est activé.
-                {dateFin && <><br/>Accès valable jusqu'au <strong>{dateFin}</strong>.</>}
-              </p>
-              <Link to="/cours" onClick={fermerModal}
-                style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--foret)', color: '#fff', borderRadius: 'var(--r-md)', fontWeight: '700', fontSize: '14px', textDecoration: 'none' }}>
-                Découvrir les cours Premium →
-              </Link>
+            <div style={{ textAlign: 'center', padding: '.5rem 0' }}>
+              <span className="succes-ico"><Icone nom="trophee" taille={34} /></span>
+              <h2 className="modal-titre">Bienvenue dans Premium</h2>
+              <p className="modal-sous" style={{ lineHeight: 1.7 }}>Ton compte est activé.{dateFin && <><br />Accès valable jusqu'au <strong>{dateFin}</strong>.</>}</p>
+              <Link to="/cours" onClick={fermerModal} className="btn btn-foret">Découvrir les cours</Link>
             </div>
           )}
         </Modal>

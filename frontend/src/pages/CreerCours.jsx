@@ -1,14 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import api from '../lib/api'
+import Icone from '../components/Icones'
 
 const MATIERES = ['MATHEMATIQUES', 'PHYSIQUE', 'CHIMIE', 'SCIENCES_VIE_TERRE', 'INFORMATIQUE']
 const NIVEAUX  = ['COLLEGE', 'LYCEE', 'UNIVERSITE']
 
 const labelMatiere = { MATHEMATIQUES: 'Mathématiques', PHYSIQUE: 'Physique', CHIMIE: 'Chimie', SCIENCES_VIE_TERRE: 'SVT', INFORMATIQUE: 'Informatique' }
 const labelNiveau  = { COLLEGE: 'Collège', LYCEE: 'Lycée', UNIVERSITE: 'Université' }
-
-const champ = { padding: '10px 12px', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '14px', width: '100%', fontFamily: 'var(--sans)', outline: 'none', background: 'var(--blanc)' }
 
 export default function CreerCours() {
   const navigate = useNavigate()
@@ -28,60 +27,47 @@ export default function CreerCours() {
       navigate(`/cours/${data.id}`)
     } catch (err) {
       const data = err.response?.data
-      const msg = data?.erreurs?.[0]?.msg || data?.message || 'Erreur lors de la création.'
-      setErreur(msg)
+      setErreur(data?.erreurs?.[0]?.msg || data?.message || 'Erreur lors de la création.')
       setEnvoi(false)
     }
   }
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
-      <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.75rem', fontWeight: '400', marginBottom: '0.25rem' }}>Créer un cours</h1>
-      <p style={{ color: 'var(--texte-2)', fontSize: '14px', marginBottom: '2rem' }}>Le cours sera masqué jusqu'à sa publication.</p>
+    <div className="form-page etroit">
+      <Link to="/dashboard" className="form-retour"><Icone nom="retour" taille={16} /> Tableau de bord</Link>
+      <h1>Créer un cours</h1>
+      <p className="form-intro">Le cours reste masqué aux élèves tant que tu ne l'as pas publié. Tu pourras ensuite y ajouter des chapitres et des quiz.</p>
 
-      <form onSubmit={soumettre} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '2rem', boxShadow: 'var(--ombre-md)' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--texte)' }}>Titre *</label>
-          <input style={champ} value={form.titre} onChange={e => maj('titre', e.target.value)} placeholder="Ex : Équations du second degré" />
-        </div>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Description</label>
-          <textarea rows={3} style={{ ...champ, resize: 'vertical' }} value={form.description} onChange={e => maj('description', e.target.value)} placeholder="Présentation rapide du cours..." />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Matière *</label>
-            <select style={champ} value={form.matiere} onChange={e => maj('matiere', e.target.value)}>
-              <option value="">-- Choisir --</option>
+      <form onSubmit={soumettre} className="form-carte champs-form">
+        <label className="champ-groupe">Titre *
+          <input value={form.titre} onChange={e => maj('titre', e.target.value)} placeholder="Ex : Équations du second degré" />
+        </label>
+        <label className="champ-groupe">Description
+          <textarea rows={3} value={form.description} onChange={e => maj('description', e.target.value)} placeholder="Présentation rapide du cours" />
+        </label>
+        <div className="grille-2">
+          <label className="champ-groupe">Matière *
+            <select value={form.matiere} onChange={e => maj('matiere', e.target.value)}>
+              <option value="">Choisir</option>
               {MATIERES.map(m => <option key={m} value={m}>{labelMatiere[m]}</option>)}
             </select>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Niveau *</label>
-            <select style={champ} value={form.niveau} onChange={e => maj('niveau', e.target.value)}>
-              <option value="">-- Choisir --</option>
+          </label>
+          <label className="champ-groupe">Niveau *
+            <select value={form.niveau} onChange={e => maj('niveau', e.target.value)}>
+              <option value="">Choisir</option>
               {NIVEAUX.map(n => <option key={n} value={n}>{labelNiveau[n]}</option>)}
             </select>
-          </div>
+          </label>
         </div>
+        <label className="champ-groupe">Classe (facultatif)
+          <input value={form.classe} onChange={e => maj('classe', e.target.value)} placeholder="Ex : 3ème, Terminale S" />
+        </label>
+        <label className="champ-groupe">Adresse de l'image (facultatif)
+          <input value={form.imageUrl} onChange={e => maj('imageUrl', e.target.value)} placeholder="https://…" />
+        </label>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Classe (optionnel)</label>
-          <input style={champ} value={form.classe} onChange={e => maj('classe', e.target.value)} placeholder="Ex : 3e, Terminale S..." />
-        </div>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>URL de l'image (optionnel)</label>
-          <input style={champ} value={form.imageUrl} onChange={e => maj('imageUrl', e.target.value)} placeholder="https://..." />
-        </div>
-
-        {erreur && <div style={{ padding: '10px 14px', background: '#FFF5F5', border: '1px solid #FEB2B2', borderRadius: 'var(--r-md)', color: 'var(--erreur)', fontSize: '13px' }}>{erreur}</div>}
-
-        <button type="submit" disabled={envoi} style={{ padding: '13px', background: envoi ? 'var(--bord)' : 'var(--foret)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontSize: '15px', fontWeight: '600', cursor: envoi ? 'not-allowed' : 'pointer' }}>
-          {envoi ? 'Création...' : 'Créer le cours'}
-        </button>
+        {erreur && <div className="ia-erreur" role="alert">{erreur}</div>}
+        <button type="submit" disabled={envoi} className="btn btn-foret">{envoi ? 'Création…' : 'Créer le cours'}</button>
       </form>
     </div>
   )

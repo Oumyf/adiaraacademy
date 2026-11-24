@@ -23,7 +23,7 @@ abonnement établissement (B2B), pack Bac, marketplace profs particuliers (commi
 | Frontend | React 18 + Vite, React Router v6, Axios, KaTeX, react-markdown + remark-math + rehype-katex |
 | Backend | Node.js 20 + Express 4, Prisma ORM, JWT, bcryptjs, express-validator |
 | BDD | PostgreSQL 14+ (UUID, JSONB pour options QCM/conditions badges/tags profs) |
-| IA (Phase 2) | API Anthropic Claude — résumé de cours, parcours personnalisé |
+| IA (Phase 2) | API DeepSeek — résumé de cours, parcours personnalisé |
 | Paiement (Phase 2/4) | Orange Money / Wave |
 | Notifications | EmailJS / Twilio SMS (Phase 2), Web Push (Phase PWA) |
 | Déploiement | Vercel (frontend) + Railway (API + Postgres) |

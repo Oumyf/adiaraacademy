@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../lib/api'
+import Icone from '../components/Icones'
 
 const TYPES      = ['QCM', 'REPONSE_LIBRE', 'VRAI_FAUX']
 const DIFFICULTES = ['FACILE', 'MOYEN', 'DIFFICILE']
 
 const labelType = { QCM: 'QCM', REPONSE_LIBRE: 'Réponse libre', VRAI_FAUX: 'Vrai / Faux' }
-
-const champ = { padding: '10px 12px', border: '1px solid var(--bord)', borderRadius: 'var(--r-md)', fontSize: '14px', width: '100%', fontFamily: 'var(--sans)', outline: 'none', background: 'var(--blanc)' }
 
 const questionVide = (type) => ({
   enonce: '',
@@ -72,101 +71,94 @@ export default function CreerQuiz() {
     }
   }
 
-  return (
-    <div style={{ maxWidth: '720px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <Link to={`/chapitres/${chapitreId}`} style={{ fontSize: '13px', color: 'var(--texte-3)', textDecoration: 'none' }}>← Retour au chapitre</Link>
-      </div>
-      <h1 style={{ fontFamily: 'var(--serif)', fontSize: '1.75rem', fontWeight: '400', marginBottom: '0.25rem' }}>Créer un quiz</h1>
-      <p style={{ color: 'var(--texte-2)', fontSize: '14px', marginBottom: '2rem' }}>Ajoute autant de questions que nécessaire.</p>
+  const niveaux = new Set(questions.map(q => q.difficulte)).size
+  const adaptatif = questions.length >= 6 && niveaux >= 2
 
-      <form onSubmit={soumettre} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* Infos générales */}
-        <div style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '1.5rem', boxShadow: 'var(--ombre-md)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0 }}>Informations générales</h2>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Titre *</label>
-            <input style={champ} value={form.titre} onChange={e => majForm('titre', e.target.value)} placeholder="Ex : Quiz — équations du 1er degré" />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Type *</label>
-              <select style={champ} value={form.type} onChange={e => majForm('type', e.target.value)}>
+  return (
+    <div className="form-page">
+      <Link to={`/chapitres/${chapitreId}`} className="form-retour"><Icone nom="retour" taille={16} /> Retour au chapitre</Link>
+      <h1>Créer un quiz</h1>
+      <p className="form-intro">Ajoute autant de questions que nécessaire. Avec au moins 6 questions et deux niveaux de difficulté, le quiz devient adaptatif.</p>
+
+      <form onSubmit={soumettre} style={{ display: 'grid', gap: '1.2rem' }}>
+        <div className="form-carte">
+          <h2 className="form-sous-titre">Informations générales</h2>
+          <label className="champ-groupe">Titre *
+            <input value={form.titre} onChange={e => majForm('titre', e.target.value)} placeholder="Ex : Quiz sur les équations du 1er degré" />
+          </label>
+          <div className="grille-3">
+            <label className="champ-groupe">Type *
+              <select value={form.type} onChange={e => majForm('type', e.target.value)}>
                 {TYPES.map(t => <option key={t} value={t}>{labelType[t]}</option>)}
               </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Durée (min)</label>
-              <input type="number" min="1" style={champ} value={form.dureMin} onChange={e => majForm('dureMin', e.target.value)} placeholder="Libre" />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>XP maximum</label>
-              <input type="number" min="0" style={champ} value={form.xpMax} onChange={e => majForm('xpMax', e.target.value)} />
-            </div>
+            </label>
+            <label className="champ-groupe">Durée (minutes)
+              <input type="number" min="1" value={form.dureMin} onChange={e => majForm('dureMin', e.target.value)} placeholder="Libre" />
+            </label>
+            <label className="champ-groupe">XP maximum
+              <input type="number" min="0" value={form.xpMax} onChange={e => majForm('xpMax', e.target.value)} />
+            </label>
           </div>
         </div>
 
-        {/* Questions */}
+        <div className={`note-adaptatif ${adaptatif ? 'ok' : ''}`} role="status">
+          {adaptatif
+            ? 'Quiz adaptatif activé : chaque élève reçoit 5 questions choisies selon ses réponses.'
+            : `Pour rendre ce quiz adaptatif, il faut au moins 6 questions et deux niveaux de difficulté. Pour l'instant : ${questions.length} question${questions.length > 1 ? 's' : ''}, ${niveaux} niveau${niveaux > 1 ? 'x' : ''}.`}
+        </div>
+
         {questions.map((q, i) => (
-          <div key={i} style={{ background: 'var(--blanc)', border: '1px solid var(--bord)', borderRadius: 'var(--r-xl)', padding: '1.5rem', boxShadow: 'var(--ombre-sm)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '15px', fontWeight: '600', margin: 0 }}>Question {i + 1}</h2>
+          <div key={i} className="form-carte">
+            <div className="form-entete">
+              <h2 className="form-sous-titre">Question {i + 1}</h2>
               {questions.length > 1 && (
-                <button type="button" onClick={() => supprimerQuestion(i)} style={{ background: 'none', border: 'none', color: 'var(--erreur)', fontSize: '13px', cursor: 'pointer', padding: '4px 8px' }}>Supprimer</button>
+                <button type="button" onClick={() => supprimerQuestion(i)} className="btn btn-danger btn-petit">Supprimer</button>
               )}
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Énoncé *</label>
-              <textarea rows={2} style={{ ...champ, resize: 'vertical' }} value={q.enonce} onChange={e => majQuestion(i, 'enonce', e.target.value)} placeholder="Quelle est la valeur de x dans 2x + 3 = 7 ?" />
-            </div>
+            <label className="champ-groupe">Énoncé *
+              <textarea rows={2} value={q.enonce} onChange={e => majQuestion(i, 'enonce', e.target.value)} placeholder="Quelle est la valeur de x dans 2x + 3 = 7 ?" />
+            </label>
 
             {form.type === 'QCM' && (
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Options (4 choix) *</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {q.options.map((opt, oi) => (
-                    <input key={oi} style={champ} value={opt} onChange={e => majOption(i, oi, e.target.value)} placeholder={`Option ${oi + 1}`} />
-                  ))}
-                </div>
+              <div className="champ-groupe" role="group" aria-label="Options">
+                <span>Options (4 choix) *</span>
+                {q.options.map((opt, oi) => (
+                  <input key={oi} value={opt} onChange={e => majOption(i, oi, e.target.value)} placeholder={`Option ${oi + 1}`} aria-label={`Option ${oi + 1}`} />
+                ))}
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: form.type === 'VRAI_FAUX' ? '1fr 1fr' : '2fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Réponse correcte *</label>
+            <div className="grille-2">
+              <label className="champ-groupe">Réponse correcte *
                 {form.type === 'VRAI_FAUX' ? (
-                  <select style={champ} value={q.reponseCorrecte} onChange={e => majQuestion(i, 'reponseCorrecte', e.target.value)}>
+                  <select value={q.reponseCorrecte} onChange={e => majQuestion(i, 'reponseCorrecte', e.target.value)}>
                     <option value="Vrai">Vrai</option>
                     <option value="Faux">Faux</option>
                   </select>
                 ) : (
-                  <input style={champ} value={q.reponseCorrecte} onChange={e => majQuestion(i, 'reponseCorrecte', e.target.value)} placeholder={form.type === 'QCM' ? 'Doit correspondre à une option' : 'Réponse attendue'} />
+                  <input value={q.reponseCorrecte} onChange={e => majQuestion(i, 'reponseCorrecte', e.target.value)} placeholder={form.type === 'QCM' ? 'Doit correspondre à une option' : 'Réponse attendue'} />
                 )}
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Difficulté</label>
-                <select style={champ} value={q.difficulte} onChange={e => majQuestion(i, 'difficulte', e.target.value)}>
+              </label>
+              <label className="champ-groupe">Difficulté
+                <select value={q.difficulte} onChange={e => majQuestion(i, 'difficulte', e.target.value)}>
                   {DIFFICULTES.map(d => <option key={d} value={d}>{d.charAt(0) + d.slice(1).toLowerCase()}</option>)}
                 </select>
-              </div>
+              </label>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Explication (optionnel)</label>
-              <input style={champ} value={q.explication} onChange={e => majQuestion(i, 'explication', e.target.value)} placeholder="Affiché après la correction..." />
-            </div>
+            <label className="champ-groupe">Explication (facultatif)
+              <input value={q.explication} onChange={e => majQuestion(i, 'explication', e.target.value)} placeholder="Affichée après la correction" />
+            </label>
           </div>
         ))}
 
-        <button type="button" onClick={ajouterQuestion} style={{ padding: '11px', border: '2px dashed var(--bord)', borderRadius: 'var(--r-lg)', background: 'transparent', color: 'var(--texte-2)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
-          + Ajouter une question
-        </button>
+        <button type="button" onClick={ajouterQuestion} className="btn-ajout"><Icone nom="plus" taille={16} /> Ajouter une question</button>
 
-        {erreur && <div style={{ padding: '10px 14px', background: '#FFF5F5', border: '1px solid #FEB2B2', borderRadius: 'var(--r-md)', color: 'var(--erreur)', fontSize: '13px' }}>{erreur}</div>}
+        {erreur && <div className="ia-erreur" role="alert">{erreur}</div>}
 
-        <button type="submit" disabled={envoi} style={{ padding: '14px', background: envoi ? 'var(--bord)' : 'var(--foret)', color: '#fff', border: 'none', borderRadius: 'var(--r-md)', fontSize: '15px', fontWeight: '600', cursor: envoi ? 'not-allowed' : 'pointer' }}>
-          {envoi ? 'Création...' : `Créer le quiz (${questions.length} question${questions.length > 1 ? 's' : ''})`}
+        <button type="submit" disabled={envoi} className="btn btn-foret">
+          {envoi ? 'Création…' : `Créer le quiz (${questions.length} question${questions.length > 1 ? 's' : ''})`}
         </button>
       </form>
     </div>
