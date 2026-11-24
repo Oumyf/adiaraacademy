@@ -41,6 +41,7 @@ export default function Layout() {
 
   const espaceUrl = utilisateur?.role === "PARENT" ? "/espace-parent" : "/dashboard"
   const estProf = utilisateur?.role === "PROFESSEUR" || utilisateur?.role === "ADMIN"
+  const estAdmin = utilisateur?.role === "ADMIN"
 
   const liens = [
     { to: "/cours", label: "Cours" },
@@ -50,7 +51,7 @@ export default function Layout() {
   ]
 
   return (
-    <div className={`app${pathname === "/" ? " nav-sur-hero" : ""}`} style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className={`app${pathname === "/" ? " nav-sur-hero" : ""}${estAdmin ? " nav-staff" : ""}`} style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <nav className={`nav${defile ? " nav-defile" : ""}`} aria-label="Navigation principale">
         <NavLink to="/" className="nav-marque" onClick={fermerMenu}>
           <Logo hauteur={50} />
@@ -61,8 +62,9 @@ export default function Layout() {
           {utilisateur ? (
             <>
               <NavLink to={espaceUrl} className={classeLien}>Mon espace</NavLink>
-              {estProf && <NavLink to="/creer-cours" className={classeLien}>Créer un cours</NavLink>}
-              {estProf && <NavLink to="/generer-cours" className={classeLien}>Cours par IA</NavLink>}
+              {estProf && <NavLink to="/creer-cours" className={classeLien}>Créer</NavLink>}
+              {estProf && <NavLink to="/generer-cours" className={classeLien}>Cours IA</NavLink>}
+              {estAdmin && <NavLink to="/admin/ambassadeurs" className={classeLien}>Ambassadeurs</NavLink>}
               <span className="nav-xp" title="Points d'expérience">
                 <Icone nom="etoile" taille={14} /> {utilisateur.xpTotal ?? 0} XP
               </span>
@@ -93,6 +95,7 @@ export default function Layout() {
             <NavLink to={espaceUrl} style={lienMobile} onClick={fermerMenu}>Mon espace</NavLink>
             {estProf && <NavLink to="/creer-cours" style={lienMobile} onClick={fermerMenu}>Créer un cours</NavLink>}
             {estProf && <NavLink to="/generer-cours" style={lienMobile} onClick={fermerMenu}>Cours par IA</NavLink>}
+            {estAdmin && <NavLink to="/admin/ambassadeurs" style={lienMobile} onClick={fermerMenu}>Ambassadeurs</NavLink>}
             <div style={{ borderTop: "1px solid rgba(255,255,255,.15)", marginTop: 8, paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span className="nav-xp"><Icone nom="etoile" taille={14} /> {utilisateur.xpTotal ?? 0} XP</span>
               <button className="nav-sortie" onClick={handleDeconnexion}>Déconnexion</button>

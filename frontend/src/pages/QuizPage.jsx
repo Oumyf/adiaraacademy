@@ -282,7 +282,7 @@ export default function QuizPage() {
         <h2 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: '400', marginBottom: '1rem' }}>Correction</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {corrections.map((c, i) => (
-            <div key={i} style={{ background: 'var(--blanc)', borderRadius: 'var(--r-lg)', padding: '1.25rem', border: `0.5px solid ${c.estCorrecte ? '#9AE6B4' : '#FEB2B2'}`, borderLeft: `4px solid ${c.estCorrecte ? 'var(--succes)' : 'var(--erreur)'}` }}>
+            <div key={i} style={{ background: 'var(--blanc)', borderRadius: 'var(--r-lg)', padding: '1.25rem', border: `0.5px solid color-mix(in srgb, ${c.estCorrecte ? 'var(--succes)' : 'var(--erreur)'} 35%, transparent)`, borderLeft: `4px solid ${c.estCorrecte ? 'var(--succes)' : 'var(--erreur)'}` }}>
               <div style={{ fontWeight: '600', fontSize: '14px', marginBottom: '8px' }}>
                 {c.estCorrecte ? '✓ Correct' : '✗ Incorrect'} — <Md>{c.enonce}</Md>
               </div>

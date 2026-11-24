@@ -1352,3 +1352,12 @@ a.ligne-dash:hover { border-color: var(--foret-clair); background: var(--foret-p
 /* LOGO officiel (image) */
 .nav-marque img { height: 50px; width: auto; }
 @media (max-width: 640px) { .nav-marque img { height: 34px; } }
+
+/* Barre de navigation : le logo ne rétrécit jamais, les libellés restent sur une ligne */
+.nav-marque { flex: none; }
+.nav-liens a, .nav-xp, .nav-sortie { white-space: nowrap; }
+/* Compte admin : plus de liens, le menu burger apparaît plus tôt */
+@media (max-width: 1620px) {
+  .app.nav-staff .nav-liens  { display: none; }
+  .app.nav-staff .nav-burger { display: flex; }
+}
